@@ -71,44 +71,57 @@ export const CodeDefense: React.FC<CodeDefenseProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Top Banner: Deep Cobalt via Sapphire to Blue with Amber accents */}
-      <div className="panel p-6 sm:p-8 bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white shadow-xl shadow-[#0E2E72]/15 relative overflow-hidden">
+      {/* Top Banner: Deep Cobalt via Sapphire to Blue with Amber accents & Companion Image */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white p-6 sm:p-8 shadow-xl shadow-[#0E2E72]/15 border border-white/10">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-[#FFC66B]/15 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 -mb-20 w-80 h-80 rounded-full bg-[#38BDF8]/15 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
+          <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#FFC66B]">
               <Terminal className="h-3.5 w-3.5" />
-              <span>AI Technical Interview Defense</span>
+              <span>SkillAura Code Defense</span>
               <span className="text-white/60">·</span>
-              <span className="text-white">Beginner Friendly Practice</span>
+              <span className="text-white">Sponsored by Worcflow</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Defend Your Real Code in Mock Interviews
             </h1>
-            <p className="text-[#DCEBFF] text-xs sm:text-sm leading-relaxed">
+            <p className="text-[#DCEBFF] text-sm sm:text-base leading-relaxed">
               Top tech companies will ask you to explain your GitHub projects in live interviews. SkillAura picks real snippets from your code and asks you why you wrote them, giving instant AI feedback to boost your confidence.
             </p>
 
             {/* Beginner Quick Badges */}
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-white flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Your Real Code Snippets
+            <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[11px]">
+              <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Source: <strong className="text-white">Real Code Snippets</strong>
               </span>
-              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-[#FFC66B] flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5" /> Instant AI Feedback
+              <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-[#FFC66B]" /> Feedback: <strong className="text-white">Instant AI Review</strong>
               </span>
-              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-[#A7F3D0] flex items-center gap-1.5">
-                <ShieldAlert className="h-3.5 w-3.5 text-[#38BDF8]" /> Safe Practice Environment
+              <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
+                <ShieldAlert className="h-3.5 w-3.5 text-[#93C5FD]" /> Mode: <strong className="text-white">Safe Practice</strong>
               </span>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {/* Attached Reference Image Preview Badge */}
+            <div className="hidden xl:flex items-center gap-2.5 bg-white/10 backdrop-blur-md p-1.5 pr-3 rounded-2xl border border-white/20 shrink-0">
+              <img
+                src="/career-companion.png"
+                alt="SkillAura Companion"
+                className="h-11 w-10 object-cover rounded-xl shadow-md border border-white/25"
+              />
+              <div className="text-left">
+                <p className="text-[9px] uppercase font-bold text-[#FFC66B]">Career Companion</p>
+                <p className="text-[11px] font-bold text-white">Simulate Interview</p>
+              </div>
+            </div>
+
             <button
               onClick={() => initSession()}
-              className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-xs shadow-lg shadow-[#FFC66B]/30 flex items-center justify-center gap-2 transition-all active:scale-95"
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-sm shadow-lg shadow-[#FFC66B]/30 flex items-center justify-center gap-2 transition-all active:scale-95 shrink-0"
             >
               <RefreshCw className="h-4 w-4" />
               <span>Next Defense Question</span>
@@ -117,7 +130,7 @@ export const CodeDefense: React.FC<CodeDefenseProps> = ({
               href="https://github.com/Yadnesh2007/AICOACH2"
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2"
+              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0"
             >
               <span>GitHub Repo</span>
             </a>

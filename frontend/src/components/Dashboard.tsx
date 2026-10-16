@@ -187,6 +187,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {/* Attached Reference Image Preview Badge */}
+            <div className="hidden xl:flex items-center gap-2.5 bg-white/10 backdrop-blur-md p-1.5 pr-3 rounded-2xl border border-white/20 shrink-0">
+              <img
+                src="/career-companion.png"
+                alt="SkillAura Companion"
+                className="h-11 w-10 object-cover rounded-xl shadow-md border border-white/25"
+              />
+              <div className="text-left">
+                <p className="text-[9px] uppercase font-bold text-[#FFC66B]">Career Companion</p>
+                <p className="text-[11px] font-bold text-white">Every Skill Verified</p>
+              </div>
+            </div>
+
             <button
               disabled={isSimulating}
               onClick={() => onSimulatePush('add_sql')}
@@ -472,37 +485,49 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Right Column: Target Job & Chart (1 col) */}
         <div className="space-y-6">
-          {/* Subscription Tier Card */}
-          <div className="panel p-5 bg-gradient-to-br from-[#0E2E72] to-[#1746A2] text-white space-y-3 relative overflow-hidden shadow-lg shadow-[#0E2E72]/15">
-            <div className="flex items-center justify-between">
+          {/* Subscription Tier Card — Styled with Cobalt & Amber and attached Companion Image */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white p-5 shadow-xl shadow-[#0E2E72]/20 border border-white/20 space-y-3.5">
+            <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 bg-[#FFC66B]/15 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex items-center justify-between relative z-10">
               <div className="flex items-center gap-2">
                 <Crown className="h-4 w-4 text-[#FFC66B]" />
                 <span className="text-xs font-bold uppercase tracking-wider text-[#FFC66B]">
-                  Your Plan: {subscriptionPlan.toUpperCase()}
+                  YOUR PLAN: {subscriptionPlan.toUpperCase()}
                 </span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-white border border-white/20">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white border border-white/20 uppercase tracking-wide">
                 {subscriptionPlan === 'free' ? 'Free Tier' : 'Active Member'}
               </span>
             </div>
-            <div>
-              <h4 className="text-sm font-black text-white">
-                {subscriptionPlan === 'free'
-                  ? 'Upgrade to SkillAura Pro'
-                  : subscriptionPlan === 'pro'
-                  ? 'SkillAura Pro Active'
-                  : 'SkillAura Ultra Active'}
-              </h4>
-              <p className="text-xs text-[#DCEBFF] mt-1 leading-relaxed">
-                {subscriptionPlan === 'free'
-                  ? 'Unlock unlimited real-time GitHub reassessments, all 5+ gap blueprints, and AI mock interview defense.'
-                  : 'You have full access to real-time AST reassessment, gap blueprints, and interview defense mode.'}
-              </p>
+
+            {/* Attached Reference Image Feature Box */}
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md p-2.5 rounded-xl border border-white/15 relative z-10">
+              <img
+                src="/career-companion.png"
+                alt="SkillAura Career Companion"
+                className="h-16 w-14 object-cover rounded-lg shadow-md shrink-0 border border-white/20"
+              />
+              <div className="space-y-0.5">
+                <h4 className="text-xs font-black text-white">
+                  {subscriptionPlan === 'free'
+                    ? 'SkillAura Free Starter'
+                    : subscriptionPlan === 'pro'
+                    ? 'SkillAura Pro Active'
+                    : 'SkillAura Ultra Active'}
+                </h4>
+                <p className="text-[11px] text-[#DCEBFF] leading-snug">
+                  {subscriptionPlan === 'free'
+                    ? 'Unlock real-time commit analysis, 5+ gap blueprints, and AI mock defense interviews.'
+                    : 'All advanced code AST blueprints and mock interview defense modules unlocked.'}
+                </p>
+              </div>
             </div>
+
             {onOpenPricing && (
               <button
                 onClick={onOpenPricing}
-                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] text-[#0E2E72] font-black text-xs hover:opacity-95 shadow-md flex items-center justify-center gap-2 transition-all active:scale-95"
+                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] text-[#0E2E72] font-black text-xs hover:opacity-95 shadow-md shadow-[#FFC66B]/25 flex items-center justify-center gap-2 transition-all active:scale-95 relative z-10"
               >
                 <span>{subscriptionPlan === 'free' ? 'View Plans & Upgrade' : 'Manage Subscription'}</span>
                 <ArrowRight className="h-3.5 w-3.5" />

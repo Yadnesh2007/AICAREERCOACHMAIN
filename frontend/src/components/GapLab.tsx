@@ -162,24 +162,24 @@ export const GapLab: React.FC<GapLabProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Header Banner - Matching Premium Deep Cobalt to Vibrant Sapphire with Amber Accents */}
-      <div className="panel p-6 sm:p-8 bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white shadow-xl shadow-[#1746A2]/20 border border-white/10 relative overflow-hidden">
+      {/* Header Banner - Matching 1st Page Hero Banner with Amber Accents & Companion Image */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white p-6 sm:p-8 shadow-xl shadow-[#0E2E72]/15 border border-white/10">
         {/* Subtle decorative background glow */}
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-[#FFC66B]/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute left-1/3 -bottom-20 w-72 h-72 bg-[#38BDF8]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-[#FFC66B]/15 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-20 w-80 h-80 rounded-full bg-[#38BDF8]/15 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-bold text-[#FFC66B] shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#FFC66B]">
               <Sparkles className="h-3.5 w-3.5 text-[#FFC66B]" />
-              <span>Skill Gap Solutions & Blueprints</span>
+              <span>SkillAura Gap Lab</span>
               <span className="text-white/60">·</span>
-              <span className="text-white">Beginner Friendly</span>
+              <span className="text-white">Sponsored by Worcflow</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              AI Gap Lab · Step-by-Step Code Guides
+              Skill Gap Solutions & Blueprints
             </h1>
-            <p className="text-[#DCEBFF] text-xs sm:text-sm leading-relaxed">
+            <p className="text-[#DCEBFF] text-sm sm:text-base leading-relaxed">
               Don't worry if you're missing a skill! Each blueprint below gives you production-ready code examples with explanations. Click <strong>"1-Click Auto-Resolve"</strong> or copy the code into your repository to turn missing skills into verified proofs.
             </p>
 
@@ -192,39 +192,52 @@ export const GapLab: React.FC<GapLabProps> = ({
                 <Zap className="h-3 w-3 text-[#6EE7B7]" /> Auto-Resolver: <strong className="text-white">1-Click AST</strong>
               </span>
               <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
-                <ShieldCheck className="h-3 w-3 text-[#93C5FD]" /> Target Roles: <strong className="text-white">Stripe SWE</strong>
+                <ShieldCheck className="h-3 w-3 text-[#93C5FD]" /> Target Role: <strong className="text-white">Stripe SWE</strong>
               </span>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-            <a
-              href="https://github.com/Yadnesh2007/AICOACH2"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold transition-all shadow-sm backdrop-blur-sm"
-            >
-              <ExternalLink className="h-4 w-4" />
-              <span>GitHub (AICOACH2)</span>
-            </a>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {/* Attached Reference Image Preview Badge */}
+            <div className="hidden xl:flex items-center gap-2.5 bg-white/10 backdrop-blur-md p-1.5 pr-3 rounded-2xl border border-white/20 shrink-0">
+              <img
+                src="/career-companion.png"
+                alt="SkillAura Companion"
+                className="h-11 w-10 object-cover rounded-xl shadow-md border border-white/25"
+              />
+              <div className="text-left">
+                <p className="text-[9px] uppercase font-bold text-[#FFC66B]">Career Companion</p>
+                <p className="text-[11px] font-bold text-white">1-Click Blueprints</p>
+              </div>
+            </div>
 
             <button
               disabled={isSimulating}
               onClick={() => onSimulatePush('add_sql')}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:from-[#F5B754] hover:to-[#D97706] text-[#0F1D38] text-xs font-extrabold shadow-lg shadow-[#D97706]/25 transition-all flex items-center justify-center gap-2"
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-sm shadow-lg shadow-[#FFC66B]/30 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
             >
               {isSimulating ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin text-[#0F1D38]" />
+                  <RefreshCw className="h-4 w-4 animate-spin text-[#0E2E72]" />
                   <span>Verifying via AST Engine…</span>
                 </>
               ) : (
                 <>
-                  <GitCommit className="h-4 w-4 text-[#0F1D38]" />
-                  <span>Auto-Resolve SQL Gap (Push Demo)</span>
+                  <GitCommit className="h-4 w-4 text-[#0E2E72]" />
+                  <span>Auto-Resolve SQL Gap</span>
                 </>
               )}
             </button>
+
+            <a
+              href="https://github.com/Yadnesh2007/AICOACH2"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span>GitHub (AICOACH2)</span>
+            </a>
           </div>
         </div>
       </div>

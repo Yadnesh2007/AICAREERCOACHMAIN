@@ -98,6 +98,9 @@
   box-shadow: var(--shadow-panel);
   transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
+.panel[class*="bg-"] {
+  background: unset;
+}
 .panel:hover {
   border-color: var(--surface-border-hover);
   box-shadow: var(--shadow-elevated);

@@ -83,54 +83,71 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
 
   return (
     <div className="space-y-8">
-      {/* Header Banner: Deep Cobalt via Sapphire to Blue with Amber accents */}
-      <div className="panel p-6 sm:p-8 bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white shadow-xl shadow-[#0E2E72]/15 relative overflow-hidden">
+      {/* Header Banner: Deep Cobalt via Sapphire to Blue with Amber accents & Companion Image */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white p-6 sm:p-8 shadow-xl shadow-[#0E2E72]/15 border border-white/10">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-[#FFC66B]/15 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 -mb-20 w-80 h-80 rounded-full bg-[#38BDF8]/15 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-[#FFC66B]">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#FFC66B]">
               <Network className="h-3.5 w-3.5" />
-              <span>Interactive Skill Hierarchy</span>
+              <span>SkillAura Skill Graph</span>
               <span className="text-white/60">·</span>
-              <span className="text-white">Beginner Roadmap</span>
+              <span className="text-white">Sponsored by Worcflow</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Developer Skill Tree & Learning Paths
             </h1>
-            <p className="text-[#DCEBFF] text-xs sm:text-sm leading-relaxed">
+            <p className="text-[#DCEBFF] text-sm sm:text-base leading-relaxed">
               Understand prerequisite skills step-by-step. See which skills build on each other (e.g., Python Basics &rarr; SQL Queries &rarr; Backend APIs &rarr; Production Caching) so you always know what to study next.
             </p>
 
             {/* Quick Helper Badges */}
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-white flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Click Any Skill to View Prerequisites
+            <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[11px]">
+              <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Status: <strong className="text-white">{masteryPercentage}% Mastery</strong>
               </span>
-              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-[#FFC66B] flex items-center gap-1.5">
-                Stripe & Enterprise Aligned
+              <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
+                Target: <strong className="text-white">Stripe SWE Aligned</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
+                Total Nodes: <strong className="text-white">{nodes.length} Skills</strong>
               </span>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-3 rounded-xl text-center">
-                <p className="text-[10px] uppercase font-bold text-[#FFC66B]">Mastery</p>
-                <p className="text-2xl font-black text-white">{masteryPercentage}%</p>
+            {/* Attached Reference Image Preview Badge */}
+            <div className="hidden xl:flex items-center gap-2.5 bg-white/10 backdrop-blur-md p-1.5 pr-3 rounded-2xl border border-white/20 shrink-0">
+              <img
+                src="/career-companion.png"
+                alt="SkillAura Companion"
+                className="h-11 w-10 object-cover rounded-xl shadow-md border border-white/25"
+              />
+              <div className="text-left">
+                <p className="text-[9px] uppercase font-bold text-[#FFC66B]">Career Companion</p>
+                <p className="text-[11px] font-bold text-white">Visual Tree Map</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-3 rounded-xl text-center">
-                <p className="text-[10px] uppercase font-bold text-[#BBD9FF]">Skills Mapped</p>
-                <p className="text-2xl font-black text-white">{nodes.length}</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl text-center">
+                <p className="text-[9px] uppercase font-bold text-[#FFC66B]">Mastery</p>
+                <p className="text-xl font-black text-white">{masteryPercentage}%</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl text-center">
+                <p className="text-[9px] uppercase font-bold text-[#BBD9FF]">Skills</p>
+                <p className="text-xl font-black text-white">{nodes.length}</p>
               </div>
             </div>
             <a
               href="https://github.com/Yadnesh2007/AICOACH2"
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2"
+              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0"
             >
+              <ExternalLink className="h-4 w-4" />
               <span>GitHub Repo</span>
             </a>
           </div>
