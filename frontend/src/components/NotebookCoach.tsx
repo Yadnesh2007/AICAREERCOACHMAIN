@@ -121,22 +121,41 @@ export const NotebookCoach: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Header Banner */}
-      <div className="panel p-6 sm:p-8 bg-gradient-to-r from-[#1746A2] via-[#2359C7] to-[#3978E8] text-white shadow-xl shadow-[#1746A2]/15 relative overflow-hidden">
+      {/* Header Banner: Deep Cobalt via Sapphire to Blue with Amber accents */}
+      <div className="panel p-6 sm:p-8 bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white shadow-xl shadow-[#0E2E72]/15 relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-[#FFC66B]/15 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-20 w-80 h-80 rounded-full bg-[#38BDF8]/15 blur-3xl pointer-events-none" />
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#FFC66B]">
               <BookOpen className="h-3.5 w-3.5" />
-              <span>Dataset Ingestion: ai-career-coach.ipynb</span>
+              <span>AI Resume & Job Match Coach</span>
+              <span className="text-white/60">·</span>
+              <span className="text-white">Beginner Guide</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              CV & Job Description RAG Intelligence
+              Resume Optimizer & ATS Match Scanner
             </h1>
             <p className="text-[#DCEBFF] text-xs sm:text-sm leading-relaxed">
-              Synthesized from Kaggle dataset <span className="font-mono text-white font-semibold">ai-career-coach.ipynb</span>. 
-              Benchmarking <span className="text-white font-semibold">John Doe (Data Scientist)</span> against{' '}
-              <span className="text-white font-semibold">LinguaLogic AI (NLP Data Scientist)</span>.
+              Find out if your resume will pass applicant tracking systems (ATS). See missing keywords, get STAR-formatted bullet points (Situation, Task, Action, Result), and chat with the AI coach about your career.
             </p>
+
+            {/* Beginner Explainer Pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-white flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Target: LinguaLogic AI (NLP Data Scientist)
+              </span>
+              <a
+                href="https://github.com/Yadnesh2007/AICOACH2"
+                target="_blank"
+                rel="noreferrer"
+                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 border border-white/20 text-white inline-flex items-center gap-1.5"
+              >
+                <span>GitHub Repo</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">

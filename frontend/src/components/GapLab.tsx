@@ -172,13 +172,15 @@ export const GapLab: React.FC<GapLabProps> = ({
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-bold text-[#FFC66B] shadow-sm">
               <Sparkles className="h-3.5 w-3.5 text-[#FFC66B]" />
-              <span>Targeted Skill Remediation Engine</span>
+              <span>Skill Gap Solutions & Blueprints</span>
+              <span className="text-white/60">·</span>
+              <span className="text-white">Beginner Friendly</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              AI Gap Lab · Enterprise Code Solutions
+              AI Gap Lab · Step-by-Step Code Guides
             </h1>
             <p className="text-[#DCEBFF] text-xs sm:text-sm leading-relaxed">
-              Every identified gap below maps to unverified job requirements. Complete these engineering tasks to convert <span className="font-semibold text-white">Not in Scope</span> verdicts into verified code evidence.
+              Don't worry if you're missing a skill! Each blueprint below gives you production-ready code examples with explanations. Click <strong>"1-Click Auto-Resolve"</strong> or copy the code into your repository to turn missing skills into verified proofs.
             </p>
 
             {/* Quick Metrics Strip */}

@@ -15,14 +15,18 @@ import {
   Activity,
   Layers,
   RefreshCw,
-  ArrowUpRight,
-  GitCommit,
   Sparkles,
   Zap,
   ShieldCheck,
+  Crown,
+  BookOpen,
+  Lightbulb,
+  ArrowRight,
+  ArrowUpRight,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { Assessment, Job, Evidence, SkillVerdict } from '../lib/types';
+import { PlanType } from './SubscriptionModal';
 
 interface DashboardProps {
   assessment: Assessment | null;
@@ -30,6 +34,8 @@ interface DashboardProps {
   onSimulatePush: (action: 'add_sql' | 'delete_sql') => void;
   isSimulating: boolean;
   onOpenCodeDefense: (evidenceId: string) => void;
+  subscriptionPlan?: PlanType;
+  onOpenPricing?: () => void;
 }
 
 const fadeUp: any = {
@@ -124,6 +130,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onSimulatePush,
   isSimulating,
   onOpenCodeDefense,
+  subscriptionPlan = 'free',
+  onOpenPricing,
 }) => {
   const [expandedVerdict, setExpandedVerdict] = useState<string | null>(null);
 
@@ -156,7 +164,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#1746A2] via-[#2359C7] to-[#3978E8] text-white p-6 sm:p-8 shadow-xl shadow-[#1746A2]/15"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white p-6 sm:p-8 shadow-xl shadow-[#1746A2]/15"
       >
         {/* Decorative background glows */}
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-[#BBD9FF]/20 blur-3xl pointer-events-none" />
@@ -174,7 +182,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               Every Skill Backed by Real GitHub Evidence
             </h1>
             <p className="text-[#DCEBFF] text-sm sm:text-base leading-relaxed">
-              Comparing your student repositories against real requirements for <span className="text-white font-semibold">{job.title}</span> at <span className="text-white font-semibold">{job.employer}</span>. Honest gaps, zero hallucinations, automatic reassessment on push.
+              We check your real code files against real job requirements for <span className="text-white font-semibold">{job.title}</span> at <span className="text-white font-semibold">{job.employer}</span>. Clear skill proofs, zero guesswork, and automatic updates when you push code.
             </p>
           </div>
 
@@ -182,17 +190,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <button
               disabled={isSimulating}
               onClick={() => onSimulatePush('add_sql')}
-              className="px-5 py-3 rounded-xl bg-[#FFC66B] hover:bg-[#F5B754] text-[#1746A2] font-bold text-sm shadow-lg shadow-[#FFC66B]/30 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-sm shadow-lg shadow-[#FFC66B]/30 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+              title="Adds SQL code to repo to trigger automatic skill leveling"
             >
               {isSimulating ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  <span>Processing Commits…</span>
+                  <RefreshCw className="h-4 w-4 animate-spin text-[#0E2E72]" />
+                  <span>Checking Code…</span>
                 </>
               ) : (
                 <>
-                  <Zap className="h-4 w-4 fill-current" />
-                  <span>Demonstrate SQL Push</span>
+                  <Zap className="h-4 w-4 fill-current text-[#0E2E72]" />
+                  <span>⚡ Try Demo: Add Code</span>
                 </>
               )}
             </button>
@@ -200,40 +209,75 @@ export const Dashboard: React.FC<DashboardProps> = ({
               disabled={isSimulating}
               onClick={() => onSimulatePush('delete_sql')}
               className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2"
-              title="Simulates code deletion to verify honest skill downgrade"
+              title="Simulates removing code to see how skill gaps update honestly"
             >
-              <span>Test Downgrade</span>
+              <span>Test Code Removal</span>
             </button>
           </div>
         </div>
       </motion.div>
 
+      {/* ── BEGINNER DEVELOPER GUIDE CALLOUT ── */}
+      <div className="bg-gradient-to-r from-[#EFF5FE] to-[#F6FAFF] border border-[#BBD9FF] rounded-2xl p-5 shadow-sm">
+        <div className="flex items-start gap-3.5">
+          <div className="h-9 w-9 rounded-xl bg-[#1746A2] text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+            <Lightbulb className="h-5 w-5 text-[#FFC66B]" />
+          </div>
+          <div className="space-y-1.5 flex-1">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-[#0E2E72]">Beginner Guide: How SkillAura Evaluates Your Code</h3>
+              <span className="text-[11px] font-semibold text-[#1746A2] bg-white px-2 py-0.5 rounded border border-[#BBD9FF]">
+                100% Reliable Checks
+              </span>
+            </div>
+            <p className="text-xs text-[#334155] leading-relaxed">
+              Unlike generic career quizzes or AI chatbots that guess, SkillAura inspects your real GitHub repositories using <strong>code syntax trees (AST)</strong>. 
+              When you write functions, queries, or API routes, you earn verified skill citations with direct GitHub links that you can share with tech recruiters.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="bg-white p-2.5 rounded-xl border border-[#DDE7F5] flex items-center gap-2 text-xs font-semibold text-[#0F1D38]">
+                <span className="h-5 w-5 rounded-full bg-[#10B981]/20 text-[#10B981] flex items-center justify-center text-[11px] font-black shrink-0">1</span>
+                <span>Code Scanned Line-by-Line</span>
+              </div>
+              <div className="bg-white p-2.5 rounded-xl border border-[#DDE7F5] flex items-center gap-2 text-xs font-semibold text-[#0F1D38]">
+                <span className="h-5 w-5 rounded-full bg-[#3978E8]/20 text-[#3978E8] flex items-center justify-center text-[11px] font-black shrink-0">2</span>
+                <span>Exact Employer Match</span>
+              </div>
+              <div className="bg-white p-2.5 rounded-xl border border-[#DDE7F5] flex items-center gap-2 text-xs font-semibold text-[#0F1D38]">
+                <span className="h-5 w-5 rounded-full bg-[#F59E0B]/20 text-[#D97706] flex items-center justify-center text-[11px] font-black shrink-0">3</span>
+                <span>1-Click Gap Solutions</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── METRIC CARDS ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard
           i={0}
-          label="Requirement Match"
+          label="Skills Matched"
           value={`${coveragePercent}%`}
-          sub={`${demonstratedCount} of ${total} verified`}
+          sub={`${demonstratedCount} of ${total} verified in code`}
           accent
         />
         <MetricCard
           i={1}
-          label="Verified Evidence"
+          label="Code Proofs Found"
           value={assessment.evidence.length}
-          sub="Indexed AST snippets"
+          sub="Verified code citations"
         />
         <MetricCard
           i={2}
-          label="Identified Gaps"
+          label="Skills to Learn"
           value={missingCount}
-          sub="Not demonstrated in scope"
+          sub="Missing from scope"
         />
         <MetricCard
           i={3}
-          label="Active Version"
+          label="Current Version"
           value={`v${assessment.version}.0`}
-          sub="Live re-evaluated"
+          sub="Updated in real time"
         />
       </div>
 
@@ -428,6 +472,44 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Right Column: Target Job & Chart (1 col) */}
         <div className="space-y-6">
+          {/* Subscription Tier Card */}
+          <div className="panel p-5 bg-gradient-to-br from-[#0E2E72] to-[#1746A2] text-white space-y-3 relative overflow-hidden shadow-lg shadow-[#0E2E72]/15">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-[#FFC66B]" />
+                <span className="text-xs font-bold uppercase tracking-wider text-[#FFC66B]">
+                  Your Plan: {subscriptionPlan.toUpperCase()}
+                </span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-white border border-white/20">
+                {subscriptionPlan === 'free' ? 'Free Tier' : 'Active Member'}
+              </span>
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-white">
+                {subscriptionPlan === 'free'
+                  ? 'Upgrade to SkillAura Pro'
+                  : subscriptionPlan === 'pro'
+                  ? 'SkillAura Pro Active'
+                  : 'SkillAura Ultra Active'}
+              </h4>
+              <p className="text-xs text-[#DCEBFF] mt-1 leading-relaxed">
+                {subscriptionPlan === 'free'
+                  ? 'Unlock unlimited real-time GitHub reassessments, all 5+ gap blueprints, and AI mock interview defense.'
+                  : 'You have full access to real-time AST reassessment, gap blueprints, and interview defense mode.'}
+              </p>
+            </div>
+            {onOpenPricing && (
+              <button
+                onClick={onOpenPricing}
+                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] text-[#0E2E72] font-black text-xs hover:opacity-95 shadow-md flex items-center justify-center gap-2 transition-all active:scale-95"
+              >
+                <span>{subscriptionPlan === 'free' ? 'View Plans & Upgrade' : 'Manage Subscription'}</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
           {/* Target Position Card */}
           <div className="panel p-5 space-y-4">
             <div className="flex items-center gap-3">

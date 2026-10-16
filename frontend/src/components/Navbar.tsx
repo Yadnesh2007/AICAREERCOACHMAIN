@@ -16,8 +16,11 @@ import {
   BookOpen,
   LogOut,
   RotateCcw,
+  Crown,
+  Zap,
 } from 'lucide-react';
 import { AuthUser } from './AuthPage';
+import { PlanType } from './SubscriptionModal';
 
 interface NavbarProps {
   activeTab: string;
@@ -29,6 +32,8 @@ interface NavbarProps {
   authUser: AuthUser;
   onLogout: () => void;
   onResetDemo?: () => void;
+  subscriptionPlan: PlanType;
+  onOpenPricing: () => void;
 }
 
 const NAV_ITEMS = [
@@ -52,6 +57,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   authUser,
   onLogout,
   onResetDemo,
+  subscriptionPlan,
+  onOpenPricing,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -118,6 +125,21 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Right Controls */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Subscription Plans & Active Tier Badge */}
+              <button
+                onClick={onOpenPricing}
+                title="View Subscription Plans & Add-ons (Free, Pro, Ultra)"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#BBD9FF] bg-[#EFF5FE] hover:bg-[#DCEBFF] transition-all shrink-0"
+              >
+                <Crown className={`h-3.5 w-3.5 ${subscriptionPlan === 'ultra' ? 'text-[#7C3AED]' : subscriptionPlan === 'pro' ? 'text-[#D97706]' : 'text-[#3978E8]'}`} />
+                <span className="text-[11px] font-bold text-[#1746A2] hidden sm:inline">
+                  {subscriptionPlan.toUpperCase()}
+                </span>
+                <span className="text-[9.5px] uppercase font-black px-1.5 py-0.2 rounded bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] text-[#0E2E72]">
+                  {subscriptionPlan === 'free' ? 'Upgrade' : 'Active'}
+                </span>
+              </button>
+
               {/* Reset to v1.0 button */}
               {onResetDemo && (
                 <button
@@ -211,6 +233,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               );
             })}
+
+            <div className="pt-3 mt-2 border-t border-[#EDF2F9]">
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  onOpenPricing();
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold bg-[#EFF5FE] text-[#1746A2] border border-[#BBD9FF]"
+              >
+                <div className="flex items-center gap-2">
+                  <Crown className="h-4 w-4 text-[#D97706]" />
+                  <span>Subscription Plans (Free / Pro / Ultra)</span>
+                </div>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] text-[#0E2E72]">
+                  {subscriptionPlan.toUpperCase()}
+                </span>
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

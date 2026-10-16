@@ -88,22 +88,24 @@ export const ImpactMap: React.FC<ImpactMapProps> = ({
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-bold text-[#FFC66B] shadow-sm">
               <Sparkles className="h-3.5 w-3.5 text-[#FFC66B]" />
-              <span>Real-Time AST Reassessment Pipeline</span>
+              <span>Live Code Impact Pipeline</span>
+              <span className="text-white/60">·</span>
+              <span className="text-white">Beginner Guide</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Commit-to-Career Impact Map
             </h1>
             <p className="text-[#DCEBFF] text-xs sm:text-sm leading-relaxed">
-              Visualizing the deterministic chain from <span className="text-white font-semibold">GitHub webhook delivery</span> through <span className="text-white font-semibold">AST parser visitors</span> into immutable candidate career verdicts.
+              See what happens when you write code! Every time you push a git commit, SkillAura scans your changed files and automatically levels up your verified skills — in less than 1 second.
             </p>
 
             {/* Quick Metrics Strip */}
             <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[11px]">
               <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
-                <Clock className="h-3 w-3 text-[#FFC66B]" /> Latency: <strong className="text-white">717ms</strong>
+                <Clock className="h-3 w-3 text-[#FFC66B]" /> Latency: <strong className="text-white">717ms (Instant)</strong>
               </span>
               <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
-                <Cpu className="h-3 w-3 text-[#6EE7B7]" /> AST Parsers: <strong className="text-white">3 Active</strong>
+                <Cpu className="h-3 w-3 text-[#6EE7B7]" /> Code Parsers: <strong className="text-white">Python, SQL, REST</strong>
               </span>
               <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
                 <ShieldCheck className="h-3 w-3 text-[#93C5FD]" /> Security: <strong className="text-white">HMAC SHA-256</strong>
@@ -134,7 +136,7 @@ export const ImpactMap: React.FC<ImpactMapProps> = ({
               ) : (
                 <>
                   <GitCommit className="h-4 w-4 text-[#0F1D38]" />
-                  <span>Simulate Push (Add SQL)</span>
+                  <span>⚡ Simulate Push (Add Code)</span>
                 </>
               )}
             </button>
@@ -147,11 +149,11 @@ export const ImpactMap: React.FC<ImpactMapProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2EEFC] pb-3">
           <h3 className="font-bold text-sm text-[#0F1D38] flex items-center gap-2">
             <Activity className="h-4 w-4 text-[#1746A2]" />
-            <span>Deterministic Reassessment Execution Telemetry</span>
+            <span>4-Stage Execution Pipeline: How Your Code Becomes Verified Skills</span>
           </h3>
           <span className="text-[11px] font-mono text-[#065F46] font-bold bg-[#E6FBF2] px-2.5 py-0.5 rounded-full border border-[#A7F3D0] inline-flex items-center gap-1.5 self-start sm:self-auto">
             <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse" />
-            TOTAL PIPELINE LATENCY: 717ms
+            PIPELINE SPEED: 717ms
           </span>
         </div>
 

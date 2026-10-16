@@ -10,6 +10,7 @@ import { SkillMap } from './components/SkillMap';
 import { DemoProofDossier } from './components/DemoProofDossier';
 import { NotebookCoach } from './components/NotebookCoach';
 import { AuthPage, AuthUser } from './components/AuthPage';
+import { SubscriptionModal, PlanType } from './components/SubscriptionModal';
 import { Assessment, Job } from './lib/types';
 import { 
   checkBackendHealth, 
@@ -18,7 +19,7 @@ import {
   simulatePush,
   resetDemo 
 } from './lib/api';
-import { Sparkles, Shield, CheckCircle2, LogOut, User } from 'lucide-react';
+import { Sparkles, Shield, CheckCircle2, LogOut, User, Crown } from 'lucide-react';
 
 const pageTransition: any = {
   initial: { opacity: 0, y: 10 },
@@ -35,6 +36,17 @@ export const App: React.FC = () => {
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | undefined>(undefined);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isPricingOpen, setIsPricingOpen] = useState<boolean>(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<PlanType>(() => {
+    return (localStorage.getItem('skillaura_plan') as PlanType) || 'free';
+  });
+
+  const handleSelectPlan = (plan: PlanType) => {
+    setSubscriptionPlan(plan);
+    localStorage.setItem('skillaura_plan', plan);
+    setToastMessage(`🎉 Upgraded to ${plan.toUpperCase()} Plan! All corresponding features unlocked.`);
+    setTimeout(() => setToastMessage(null), 6000);
+  };
 
   // Sync data from backend
   const syncData = async () => {
@@ -176,6 +188,16 @@ export const App: React.FC = () => {
         version={assessment?.version || 1}
         authUser={authUser}
         onLogout={() => setAuthUser(null)}
+        subscriptionPlan={subscriptionPlan}
+        onOpenPricing={() => setIsPricingOpen(true)}
+      />
+
+      {/* Subscription & Pricing Modal */}
+      <SubscriptionModal
+        isOpen={isPricingOpen}
+        onClose={() => setIsPricingOpen(false)}
+        currentPlan={subscriptionPlan}
+        onSelectPlan={handleSelectPlan}
       />
 
       {/* Main Content Area */}
@@ -189,6 +211,8 @@ export const App: React.FC = () => {
                 onSimulatePush={handleSimulatePush}
                 isSimulating={isSimulating}
                 onOpenCodeDefense={handleOpenCodeDefense}
+                subscriptionPlan={subscriptionPlan}
+                onOpenPricing={() => setIsPricingOpen(true)}
               />
             </motion.div>
           )}
@@ -267,10 +291,16 @@ export const App: React.FC = () => {
             <span className="text-[#3978E8] font-semibold bg-[#E8F2FF] px-2 py-0.5 rounded border border-[#BBD9FF]">
               Sponsored by Worcflow
             </span>
+            <button
+              onClick={() => setIsPricingOpen(true)}
+              className="ml-2 text-[11px] font-bold text-[#1746A2] hover:text-[#3978E8] bg-[#EFF5FE] px-2 py-0.5 rounded border border-[#BBD9FF] transition-colors"
+            >
+              Subscription Plans (Free / Pro / Ultra)
+            </button>
           </div>
           <div className="flex items-center gap-6 font-mono text-[11px] text-[#475874]">
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Deterministic AST Engine
+              <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Automated Code Checker (AST)
             </span>
             <span className="flex items-center gap-1.5">
               <Shield className="h-3.5 w-3.5 text-[#3978E8]" /> Zero Hallucinations

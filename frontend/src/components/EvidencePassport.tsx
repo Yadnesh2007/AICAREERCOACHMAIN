@@ -112,34 +112,66 @@ export const EvidencePassport: React.FC<EvidencePassportProps> = ({ assessmentId
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E8F2FF] border border-[#BBD9FF] text-[11px] font-bold text-[#1746A2] mb-2">
-            <ShieldCheck className="h-3 w-3 text-[#3978E8]" />
-            <span>Auditable Skill Proof</span>
-          </div>
-          <h1 className="text-2xl font-black text-[#0D1B36]">Skill Evidence Passport</h1>
-          <p className="text-xs text-[#445674] mt-0.5">
-            {passport?.job_title} at {passport?.employer} · v{passport?.version}
-          </p>
-        </div>
+      {/* Top Banner: Deep Cobalt via Sapphire to Blue with Amber accents */}
+      <div className="panel p-6 sm:p-8 bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white shadow-xl shadow-[#0E2E72]/15 relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-[#FFC66B]/15 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-20 w-80 h-80 rounded-full bg-[#38BDF8]/15 blur-3xl pointer-events-none" />
 
-        <button
-          onClick={() => {
-            const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(passport, null, 2));
-            const a = document.createElement('a');
-            a.setAttribute('href', dataStr);
-            a.setAttribute('download', `skill_passport_${assessmentId}.json`);
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-          }}
-          className="btn-secondary text-xs shrink-0"
-        >
-          <Download className="h-3.5 w-3.5" />
-          <span>Export Verified JSON</span>
-        </button>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#FFC66B]">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>Verified Skill Passport</span>
+              <span className="text-white/60">·</span>
+              <span className="text-white">Auditable GitHub Evidence</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Your Shareable Developer Skill Credentials
+            </h1>
+            <p className="text-[#DCEBFF] text-xs sm:text-sm leading-relaxed">
+              Every badge below is linked directly to a real GitHub code snippet with exact file line numbers. Share this verifiable passport with recruiters, hiring managers, or on your LinkedIn profile.
+            </p>
+
+            {/* Quick Metrics Strip */}
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-white flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> {allEvidence.length} Code Proofs
+              </span>
+              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-[#FFC66B] flex items-center gap-1.5">
+                Target: {passport?.employer || 'Stripe'} {passport?.job_title || 'Software Engineer'}
+              </span>
+              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-[#A7F3D0] flex items-center gap-1.5">
+                Version v{passport?.version || 1}.0 Live
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            <button
+              onClick={() => {
+                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(passport, null, 2));
+                const a = document.createElement('a');
+                a.setAttribute('href', dataStr);
+                a.setAttribute('download', `skill_passport_${assessmentId}.json`);
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+              }}
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-xs shadow-lg shadow-[#FFC66B]/30 flex items-center justify-center gap-2 transition-all active:scale-95 shrink-0"
+            >
+              <Download className="h-4 w-4" />
+              <span>Export Verified JSON</span>
+            </button>
+            <a
+              href="https://github.com/Yadnesh2007/AICOACH2"
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2"
+            >
+              <span>GitHub Repo</span>
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Verdict Summary Row */}

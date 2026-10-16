@@ -71,26 +71,58 @@ export const CodeDefense: React.FC<CodeDefenseProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E8F2FF] border border-[#BBD9FF] text-[11px] font-bold text-[#1746A2] mb-1.5">
-            <Terminal className="h-3 w-3 text-[#3978E8]" />
-            <span>Verbal & Conceptual Code Defense</span>
-          </div>
-          <h1 className="text-2xl font-black text-[#0F1D38]">Code Defense Mode</h1>
-          <p className="text-xs text-[#475874] mt-0.5">
-            Defend architectural decisions, complexity, and security trade-offs for verified snippets.
-          </p>
-        </div>
+      {/* Top Banner: Deep Cobalt via Sapphire to Blue with Amber accents */}
+      <div className="panel p-6 sm:p-8 bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white shadow-xl shadow-[#0E2E72]/15 relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-[#FFC66B]/15 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-20 w-80 h-80 rounded-full bg-[#38BDF8]/15 blur-3xl pointer-events-none" />
 
-        <button
-          onClick={() => initSession()}
-          className="btn-secondary text-xs"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          <span>New Defense Question</span>
-        </button>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#FFC66B]">
+              <Terminal className="h-3.5 w-3.5" />
+              <span>AI Technical Interview Defense</span>
+              <span className="text-white/60">·</span>
+              <span className="text-white">Beginner Friendly Practice</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Defend Your Real Code in Mock Interviews
+            </h1>
+            <p className="text-[#DCEBFF] text-xs sm:text-sm leading-relaxed">
+              Top tech companies will ask you to explain your GitHub projects in live interviews. SkillAura picks real snippets from your code and asks you why you wrote them, giving instant AI feedback to boost your confidence.
+            </p>
+
+            {/* Beginner Quick Badges */}
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-white flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Your Real Code Snippets
+              </span>
+              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-[#FFC66B] flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" /> Instant AI Feedback
+              </span>
+              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 border border-white/20 text-[#A7F3D0] flex items-center gap-1.5">
+                <ShieldAlert className="h-3.5 w-3.5 text-[#38BDF8]" /> Safe Practice Environment
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            <button
+              onClick={() => initSession()}
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-xs shadow-lg shadow-[#FFC66B]/30 flex items-center justify-center gap-2 transition-all active:scale-95"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>Next Defense Question</span>
+            </button>
+            <a
+              href="https://github.com/Yadnesh2007/AICOACH2"
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2"
+            >
+              <span>GitHub Repo</span>
+            </a>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
