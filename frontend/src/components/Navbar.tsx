@@ -22,7 +22,7 @@ import {
   Cpu,
   Github,
 } from 'lucide-react';
-import { AuthUser } from './AuthPage';
+import { AuthUser, GoogleLogoSvg } from './AuthPage';
 import { PlanType } from './SubscriptionModal';
 
 interface NavbarProps {
@@ -208,13 +208,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </motion.button>
 
-              {/* User Avatar + Logout — always visible, shrink-0 */}
+              {/* User Avatar + Logout — with Google 2FA indicator */}
               <div className="flex items-center gap-1.5 pl-1.5 border-l border-[#DDE7F5] shrink-0">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#1746A2] to-[#3978E8] flex items-center justify-center text-white text-xs font-bold shadow-sm shrink-0">
-                  {authUser.name.charAt(0).toUpperCase()}
+                <div className="relative">
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#1746A2] to-[#3978E8] flex items-center justify-center text-white text-xs font-bold shadow-sm shrink-0">
+                    {authUser.name.charAt(0).toUpperCase()}
+                  </div>
+                  {authUser.provider === 'google' && (
+                    <div
+                      className="absolute -bottom-1 -right-1 h-4 w-4 bg-white rounded-full p-0.5 shadow-xs border border-[#BFDBFE] flex items-center justify-center"
+                      title="Google 2-Step OTP Verified"
+                    >
+                      <GoogleLogoSvg className="h-3 w-3" />
+                    </div>
+                  )}
                 </div>
                 <div className="hidden 2xl:block">
-                  <p className="text-xs font-bold text-[#0F1D38] leading-tight">{authUser.name}</p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-xs font-bold text-[#0F1D38] leading-tight truncate max-w-[120px]">{authUser.name}</p>
+                    {authUser.provider === 'google' && (
+                      <span className="px-1 py-0.2 rounded text-[8.5px] font-bold bg-[#E8F0FE] text-[#1A73E8] border border-[#BFDBFE]">
+                        Google 2FA
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-[#7A8CA6] capitalize leading-tight">{authUser.role}</p>
                 </div>
                 <button

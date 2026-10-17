@@ -312,3 +312,53 @@ export async function generateStarBulletsLlm(
   return res.json();
 }
 
+export async function requestGoogleOtp(email: string): Promise<{
+  success: boolean;
+  message: string;
+  email: string;
+  masked_email: string;
+  otp_preview: string;
+  expires_in_seconds: number;
+}> {
+  const res = await fetch(`${API_BASE}/api/auth/google/request-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to send Google verification code');
+  }
+  return res.json();
+}
+
+export async function verifyGoogleOtp(
+  email: string,
+  otp: string,
+  role: string = 'student'
+): Promise<{
+  success: boolean;
+  message: string;
+  user: {
+    name: string;
+    email: string;
+    role: 'student' | 'employee' | 'employer';
+    provider: 'google';
+    avatar?: string;
+    google_verified: boolean;
+  };
+  token: string;
+}> {
+  const res = await fetch(`${API_BASE}/api/auth/google/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp, role }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Invalid or expired verification code');
+  }
+  return res.json();
+}
+
+

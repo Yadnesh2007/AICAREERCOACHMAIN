@@ -5,8 +5,7 @@ from .core.database import engine, Base, SessionLocal
 from .models import db_models
 from .data.seed import seed_database
 
-# Routers
-from .api import health, github, jobs, assessments, events, webhooks, innovations, demo, career_coach, code_inspector
+from .api import health, github, jobs, assessments, events, webhooks, innovations, demo, career_coach, code_inspector, auth
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -34,6 +33,7 @@ app.add_middleware(
 
 # Register routers
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(github.router)
 app.include_router(jobs.router)
 app.include_router(assessments.router)

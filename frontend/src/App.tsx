@@ -216,7 +216,20 @@ export const App: React.FC = () => {
 
   // Show auth gate if not logged in
   if (!authUser) {
-    return <AuthPage onAuth={setAuthUser} />;
+    return (
+      <AuthPage
+        onAuth={(user) => {
+          setAuthUser(user);
+          if (user.provider === 'google') {
+            setToastMessage(`🛡️ Google 2-Step OTP Authentication verified! Signed in as ${user.email}`);
+            setTimeout(() => setToastMessage(null), 6000);
+          } else {
+            setToastMessage(`👋 Welcome back, ${user.name}!`);
+            setTimeout(() => setToastMessage(null), 5000);
+          }
+        }}
+      />
+    );
   }
 
   return (
