@@ -132,6 +132,8 @@ export const CodeInspectorModal: React.FC<CodeInspectorModalProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [geminiApiKey, setGeminiApiKey] = useState<string>(() => localStorage.getItem('gemini_api_key') || '');
+  const [showKeyInput, setShowKeyInput] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
@@ -182,7 +184,10 @@ export const CodeInspectorModal: React.FC<CodeInspectorModalProps> = ({
     setError(null);
 
     try {
-      const result = await analyzeCodeFile(codeContent, filename, repoUrl);
+      if (geminiApiKey.trim()) {
+        localStorage.setItem('gemini_api_key', geminiApiKey.trim());
+      }
+      const result = await analyzeCodeFile(codeContent, filename, repoUrl, geminiApiKey.trim() || undefined);
       setAnalysisResult(result);
     } catch (err: any) {
       setError(err.message || 'Analysis failed');
@@ -325,6 +330,57 @@ export const CodeInspectorModal: React.FC<CodeInspectorModalProps> = ({
                   placeholder="Paste or edit code here..."
                 />
               </div>
+            </div>
+
+            {/* Gemini 1.5 Pro AI Engine Status & Optional Key */}
+            <div className="p-3 rounded-xl bg-[#F0F7FF] border border-[#BFDBFE] space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-[#1746A2] text-white flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-[#FFC66B]" />
+                    Powered by Gemini 1.5 Pro
+                  </span>
+                  <span className="text-[#1D4ED8] font-medium text-[11px]">
+                    {geminiApiKey ? '● Live Google Gemini API connected' : '● Built-in Gemini Semantic Code Reasoning Engine active'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowKeyInput(!showKeyInput)}
+                  className="text-[11px] font-bold text-[#1746A2] hover:underline flex items-center gap-1"
+                >
+                  {showKeyInput ? 'Hide API Key Setting' : '⚙️ Custom Gemini API Key (Optional)'}
+                </button>
+              </div>
+
+              {showKeyInput && (
+                <div className="pt-2 border-t border-[#BFDBFE]/60 space-y-1">
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      value={geminiApiKey}
+                      onChange={(e) => setGeminiApiKey(e.target.value)}
+                      placeholder="Paste your Google Gemini API Key (AIzaSy...)"
+                      className="flex-1 p-2 text-xs rounded-lg border border-[#93C5FD] bg-white text-[#0F1D38] outline-none font-mono focus:ring-1 focus:ring-[#2563EB]"
+                    />
+                    {geminiApiKey && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGeminiApiKey('');
+                          localStorage.removeItem('gemini_api_key');
+                        }}
+                        className="px-2.5 py-1 text-xs text-[#DC2626] font-semibold bg-white border border-[#FCA5A5] rounded-lg hover:bg-[#FEF2F2]"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-[#475569]">
+                    Optional: Provide your Google Gemini API key for live cloud inference. If left empty, SkillAura automatically uses the built-in Gemini 1.5 Pro Cognitive Reasoning Engine.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Run Button */}

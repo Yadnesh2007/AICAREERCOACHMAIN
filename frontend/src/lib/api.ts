@@ -158,12 +158,18 @@ export async function resetDemo(): Promise<any> {
 export async function analyzeCodeFile(
   code: string,
   filename: string = 'main.py',
-  repoUrl: string = 'https://github.com/Yadnesh2007/SAHAYOG'
+  repoUrl: string = 'https://github.com/Yadnesh2007/SAHAYOG',
+  geminiApiKey?: string
 ): Promise<any> {
   const res = await fetch(`${API_BASE}/api/code/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, filename, repo_url: repoUrl }),
+    body: JSON.stringify({
+      code,
+      filename,
+      repo_url: repoUrl,
+      gemini_api_key: geminiApiKey || undefined,
+    }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
