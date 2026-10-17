@@ -9,6 +9,7 @@ import { CodeDefense } from './components/CodeDefense';
 import { SkillMap } from './components/SkillMap';
 import { DemoProofDossier } from './components/DemoProofDossier';
 import { NotebookCoach } from './components/NotebookCoach';
+import { AdminVerificationHub } from './components/AdminVerificationHub';
 import { AuthPage, AuthUser } from './components/AuthPage';
 import { SubscriptionModal, PlanType } from './components/SubscriptionModal';
 import { ConnectRepoModal } from './components/ConnectRepoModal';
@@ -110,6 +111,28 @@ export const App: React.FC = () => {
       setToastMessage(`🎯 Active Goal Target switched to: ${role} at ${company}!`);
       setTimeout(() => setToastMessage(null), 6000);
     }
+  };
+
+  const handleToggleAdminMode = () => {
+    if (!authUser) return;
+    const isNowAdmin = authUser.role !== 'admin';
+    const updatedUser: AuthUser = {
+      ...authUser,
+      role: isNowAdmin ? 'admin' : 'student',
+      permissions: isNowAdmin
+        ? ['verify_work', 'grant_permissions', 'audit_evidence', 'approve_dossier', 'manage_candidates', 'access_admin_hub']
+        : ['submit_evidence', 'view_coach', 'run_scanner'],
+    };
+    setAuthUser(updatedUser);
+    localStorage.setItem('skillaura_auth_user', JSON.stringify(updatedUser));
+    if (isNowAdmin) {
+      setActiveTab('admin_hub');
+      setToastMessage('🛡️ Switched to HR / Admin Bar Raiser Mode! Work verification & permissions enabled.');
+    } else {
+      setActiveTab('dashboard');
+      setToastMessage('👤 Switched to Candidate View (Student).');
+    }
+    setTimeout(() => setToastMessage(null), 5000);
   };
 
   // Sync data from backend
@@ -284,6 +307,7 @@ export const App: React.FC = () => {
         onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
         onOpenCodeInspector={() => setIsCodeInspectorOpen(true)}
         connectedRepoName={connectedRepoName}
+        onToggleAdminMode={handleToggleAdminMode}
       />
 
       {/* Subscription & Pricing Modal (with Stripe Payments Gateway) */}
@@ -389,6 +413,15 @@ export const App: React.FC = () => {
                 job={job!}
                 onSimulatePush={handleSimulatePush}
                 isSimulating={isSimulating}
+              />
+            </motion.div>
+          )}
+
+          {activeTab === 'admin_hub' && (
+            <motion.div key="admin_hub" {...pageTransition}>
+              <AdminVerificationHub
+                authUser={authUser!}
+                onNavigateToTab={(tab) => setActiveTab(tab)}
               />
             </motion.div>
           )}

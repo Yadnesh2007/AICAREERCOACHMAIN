@@ -414,5 +414,83 @@ export async function resetCvToDefault(): Promise<any> {
   return res.json();
 }
 
+export async function analyzeCvWithLlm(params?: {
+  cv_text?: string;
+  target_company?: string;
+  target_role?: string;
+  gemini_api_key?: string;
+}): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/coach/llm-analysis`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params || {}),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to perform LLM CV analysis');
+  }
+  return res.json();
+}
+
+export async function fetchAdminCandidates(): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/admin/candidates`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch candidate verification records');
+  }
+  return res.json();
+}
+
+export async function verifyCandidateWork(
+  candidateId: string,
+  status: 'verified' | 'revision_requested' | 'flagged' | 'pending',
+  notes?: string,
+  hrAuditor?: string
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/admin/verify-candidate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      candidate_id: candidateId,
+      status,
+      notes,
+      hr_auditor: hrAuditor,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to update candidate verification status');
+  }
+  return res.json();
+}
+
+export async function fetchAdminPermissions(): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/admin/permissions`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch system permissions');
+  }
+  return res.json();
+}
+
+export async function updateAdminPermissions(
+  permissions: Record<string, boolean>,
+  candidateId?: string
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/admin/update-permissions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      candidate_id: candidateId,
+      permissions,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to update user permissions');
+  }
+  return res.json();
+}
+
 
 

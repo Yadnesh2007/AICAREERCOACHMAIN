@@ -21,6 +21,7 @@ import {
   FolderGit2,
   Cpu,
   Github,
+  ShieldCheck,
 } from 'lucide-react';
 import { AuthUser, GoogleLogoSvg } from './AuthPage';
 import { PlanType } from './SubscriptionModal';
@@ -40,6 +41,7 @@ interface NavbarProps {
   onOpenConnectRepo?: () => void;
   onOpenCodeInspector?: () => void;
   connectedRepoName?: string;
+  onToggleAdminMode?: () => void;
 }
 
 const NAV_ITEMS = [
@@ -51,6 +53,7 @@ const NAV_ITEMS = [
   { id: 'skillmap', label: 'Skill Graph', icon: Network },
   { id: 'coach', label: 'CV Coach', icon: BookOpen },
   { id: 'dossier', label: 'Judge Dossier', icon: FileCheck2, highlight: true },
+  { id: 'admin_hub', label: 'HR Admin Hub', icon: ShieldCheck, adminOnly: true },
 ];
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -68,6 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenConnectRepo,
   onOpenCodeInspector,
   connectedRepoName,
+  onToggleAdminMode,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -108,23 +112,39 @@ export const Navbar: React.FC<NavbarProps> = ({
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
+                const isAdminItem = (item as any).adminOnly;
                 return (
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
                     className={`nav-tab flex items-center gap-1 text-[11px] px-1.5 xl:px-2 py-1.5 shrink-0 transition-all ${
-                      isActive ? 'active font-bold text-[#1746A2] bg-[#EEF4FD]' : 'text-[#475874] hover:bg-[#F3F7FC]'
+                      isActive
+                        ? isAdminItem
+                          ? 'active font-bold text-[#7C3AED] bg-[#F5F3FF]'
+                          : 'active font-bold text-[#1746A2] bg-[#EEF4FD]'
+                        : 'text-[#475874] hover:bg-[#F3F7FC]'
                     } ${
                       item.highlight && !isActive
                         ? 'text-[#1746A2] font-bold bg-[#EFF5FE] border border-[#BBD9FF] rounded-lg'
+                        : isAdminItem && !isActive
+                        ? 'text-[#7C3AED] font-bold bg-[#FAF5FF] border border-[#E9D5FF] rounded-lg'
                         : 'rounded-lg'
                     }`}
                   >
-                    <Icon className={`h-3 w-3 shrink-0 ${isActive ? 'text-[#1746A2]' : item.highlight ? 'text-[#3978E8]' : 'text-[#7A8CA6]'}`} />
+                    <Icon className={`h-3 w-3 shrink-0 ${
+                      isActive
+                        ? isAdminItem ? 'text-[#7C3AED]' : 'text-[#1746A2]'
+                        : item.highlight ? 'text-[#3978E8]' : isAdminItem ? 'text-[#7C3AED]' : 'text-[#7A8CA6]'
+                    }`} />
                     <span className="whitespace-nowrap">{item.label}</span>
                     {item.highlight && (
                       <span className="px-1 py-0.2 rounded text-[8.5px] font-extrabold bg-[#FFC66B] text-[#854D0E] uppercase tracking-wide shrink-0">
                         Proof
+                      </span>
+                    )}
+                    {isAdminItem && (
+                      <span className="px-1 py-0.2 rounded text-[8.5px] font-extrabold bg-[#7C3AED] text-white uppercase tracking-wide shrink-0">
+                        HR
                       </span>
                     )}
                   </button>
@@ -231,8 +251,26 @@ export const Navbar: React.FC<NavbarProps> = ({
                         Google 2FA
                       </span>
                     )}
+                    {authUser.role === 'admin' && (
+                      <span className="px-1 py-0.2 rounded text-[8.5px] font-bold bg-[#F5F3FF] text-[#7C3AED] border border-[#E9D5FF]">
+                        HR Admin
+                      </span>
+                    )}
                   </div>
-                  <p className="text-[10px] text-[#7A8CA6] capitalize leading-tight">{authUser.role}</p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-[10px] text-[#7A8CA6] capitalize leading-tight">
+                      {authUser.role === 'admin' ? 'HR Bar Raiser' : authUser.role}
+                    </p>
+                    {onToggleAdminMode && (
+                      <button
+                        onClick={onToggleAdminMode}
+                        className="text-[9px] font-bold text-[#7C3AED] hover:underline"
+                        title="Toggle role between Candidate and HR Bar Raiser"
+                      >
+                        · {authUser.role === 'admin' ? 'Candidate View' : 'HR Mode'}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={onLogout}

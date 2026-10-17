@@ -39,6 +39,7 @@ import {
   uploadCvFile,
   uploadCvText,
   resetCvToDefault,
+  analyzeCvWithLlm,
 } from '../lib/api';
 
 export const NotebookCoach: React.FC = () => {
@@ -51,9 +52,13 @@ export const NotebookCoach: React.FC = () => {
   const [copied, setCopied] = useState<boolean>(false);
   const [copiedBulletIdx, setCopiedBulletIdx] = useState<number | null>(null);
   const [keywordFilter, setKeywordFilter] = useState<string>('all');
-  const [viewTab, setViewTab] = useState<'insights' | 'ats_scanner' | 'star_optimizer' | 'rag' | 'cover_letter' | 'dataset'>('insights');
+  const [viewTab, setViewTab] = useState<'insights' | 'llm_audit' | 'ats_scanner' | 'star_optimizer' | 'rag' | 'cover_letter' | 'dataset'>('insights');
   const [llmBullets, setLlmBullets] = useState<Record<number, any>>({});
   const [loadingBulletLlm, setLoadingBulletLlm] = useState<Record<number, boolean>>({});
+  const [llmAnalysis, setLlmAnalysis] = useState<any>(null);
+  const [isAnalyzingLlm, setIsAnalyzingLlm] = useState<boolean>(false);
+  const [geminiApiKey, setGeminiApiKey] = useState<string>('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState<boolean>(false);
 
   // CV / Resume File Upload State
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -266,6 +271,21 @@ export const NotebookCoach: React.FC = () => {
     }
   };
 
+  const handleRunLlmAnalysis = async () => {
+    setIsAnalyzingLlm(true);
+    setViewTab('llm_audit');
+    try {
+      const res = await analyzeCvWithLlm({
+        gemini_api_key: geminiApiKey || undefined,
+      });
+      setLlmAnalysis(res);
+    } catch (err: any) {
+      console.error('LLM analysis error', err);
+    } finally {
+      setIsAnalyzingLlm(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3">
@@ -427,6 +447,17 @@ export const NotebookCoach: React.FC = () => {
             >
               <FileText className="h-4 w-4 text-[#3978E8]" />
               <span>Paste Text</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isAnalyzingLlm}
+              onClick={handleRunLlmAnalysis}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#9333EA] text-white text-xs font-bold hover:brightness-110 transition-all shadow-md shadow-[#7C3AED]/20 shrink-0"
+              title="Run Gemini 1.5 Pro / Flash deep CV analysis"
+            >
+              <Sparkles className={`h-4 w-4 text-[#FFC66B] ${isAnalyzingLlm ? 'animate-spin' : ''}`} />
+              <span>{isAnalyzingLlm ? 'Gemini Auditing…' : '✨ Gemini LLM CV Audit'}</span>
             </button>
 
             {dataset?.is_custom && (
@@ -608,6 +639,7 @@ export const NotebookCoach: React.FC = () => {
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar border-b border-[#DDE7F5] pb-2">
         {[
           { id: 'insights', label: 'Strengths & Gaps (Few-Shot)', icon: CheckCircle2 },
+          { id: 'llm_audit', label: '✨ Gemini LLM Deep CV Audit', icon: Sparkles, highlight: true },
           { id: 'ats_scanner', label: `ATS Keyword Scanner (${atsKeywords.length})`, icon: BarChart2 },
           { id: 'star_optimizer', label: `STAR Bullet Optimizer (${starBullets.length})`, icon: Edit3 },
           { id: 'rag', label: 'Interactive RAG Q&A', icon: Sparkles },
@@ -616,13 +648,23 @@ export const NotebookCoach: React.FC = () => {
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = viewTab === tab.id;
+          const isHighlight = (tab as any).highlight;
           return (
             <button
               key={tab.id}
-              onClick={() => setViewTab(tab.id as any)}
+              onClick={() => {
+                setViewTab(tab.id as any);
+                if (tab.id === 'llm_audit' && !llmAnalysis && !isAnalyzingLlm) {
+                  handleRunLlmAnalysis();
+                }
+              }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                 isActive
-                  ? 'bg-[#1746A2] text-white shadow-sm'
+                  ? isHighlight
+                    ? 'bg-gradient-to-r from-[#7C3AED] to-[#9333EA] text-white shadow-sm'
+                    : 'bg-[#1746A2] text-white shadow-sm'
+                  : isHighlight
+                  ? 'text-[#7C3AED] bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF]'
                   : 'text-[#475874] hover:bg-[#EFF5FE] hover:text-[#1746A2]'
               }`}
             >
@@ -632,6 +674,342 @@ export const NotebookCoach: React.FC = () => {
           );
         })}
       </div>
+
+      {/* ── TAB: GEMINI LLM DEEP CV AUDIT ── */}
+      {viewTab === 'llm_audit' && (
+        <div className="space-y-6">
+          {/* Top Control Bar for Gemini Analysis */}
+          <div className="rounded-2xl border border-[#DDE7F5] bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#7C3AED] p-6 text-white shadow-lg relative overflow-hidden">
+            <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-[#FFC66B]/20 blur-2xl pointer-events-none" />
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold uppercase tracking-wide bg-[#FFC66B] text-[#0E2E72]">
+                    Gemini 1.5 LLM Engine
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/10 text-blue-100 border border-white/20">
+                    AST Grounded Audit
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold tracking-tight text-white">
+                  Gemini Deep CV & Resume Document Analysis
+                </h3>
+                <p className="text-xs text-blue-100/90 max-w-xl">
+                  Evaluates ATS keyword density, detects ungrounded or inflated resume claims, generates
+                  quantified STAR rewrites, and constructs a 14-day technical preparation roadmap.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  disabled={isAnalyzingLlm}
+                  onClick={handleRunLlmAnalysis}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#FFC66B] hover:bg-[#FBBF24] text-[#0E2E72] text-xs font-bold transition-all shadow-md shrink-0"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isAnalyzingLlm ? 'animate-spin' : ''}`} />
+                  <span>{isAnalyzingLlm ? 'Analyzing with Gemini…' : 'Re-run Gemini Audit'}</span>
+                </button>
+                <button
+                  onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                  className="px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all border border-white/20 shrink-0"
+                >
+                  ⚙️ API Key
+                </button>
+              </div>
+            </div>
+
+            {/* Optional Custom Gemini API Key Drawer */}
+            {showApiKeyInput && (
+              <div className="mt-4 pt-4 border-t border-white/15 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <input
+                  type="password"
+                  placeholder="Enter optional Google Gemini API Key (AIzaSy...)"
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  className="flex-1 text-xs px-3.5 py-2 rounded-xl bg-white/10 text-white placeholder-blue-200/60 border border-white/20 focus:outline-none focus:ring-2 focus:ring-[#FFC66B]"
+                />
+                <button
+                  onClick={handleRunLlmAnalysis}
+                  className="px-3.5 py-2 rounded-xl bg-white text-[#1746A2] text-xs font-bold hover:bg-blue-50 transition-colors"
+                >
+                  Apply & Run
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Loading Animation State */}
+          {isAnalyzingLlm && (
+            <div className="rounded-2xl border border-[#BBD9FF] bg-[#EFF5FE] p-8 text-center space-y-3">
+              <RefreshCw className="h-8 w-8 text-[#7C3AED] animate-spin mx-auto" />
+              <h4 className="text-sm font-bold text-[#1746A2]">
+                Gemini 1.5 Cognitive Document Inspector in Progress…
+              </h4>
+              <p className="text-xs text-[#5A6E85] max-w-md mx-auto">
+                Comparing candidate CV text claims against target job expectations and verifying AST code
+                grounding on GitHub.
+              </p>
+            </div>
+          )}
+
+          {/* LLM ANALYSIS RESULTS */}
+          {!isAnalyzingLlm && llmAnalysis?.analysis && (
+            <div className="space-y-6">
+              {/* Score Tiles */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="rounded-xl border border-[#DDE7F5] bg-white p-5 shadow-xs space-y-1">
+                  <span className="text-[11px] font-bold text-[#7A8CA6] uppercase tracking-wide">
+                    ATS Keyword Match Rate
+                  </span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-3xl font-black text-[#1746A2]">
+                      {llmAnalysis.analysis.ats_match_percentage}%
+                    </span>
+                    <span className="text-xs font-semibold text-[#059669]">
+                      ({llmAnalysis.analysis.ats_keywords_found?.length || 0} matched)
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden mt-2">
+                    <div
+                      className="bg-gradient-to-r from-[#1746A2] to-[#3978E8] h-full rounded-full"
+                      style={{ width: `${llmAnalysis.analysis.ats_match_percentage}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-[#DDE7F5] bg-white p-5 shadow-xs space-y-1">
+                  <span className="text-[11px] font-bold text-[#7A8CA6] uppercase tracking-wide">
+                    Hallucination / Inflated Claim Risk
+                  </span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span
+                      className={`text-3xl font-black ${
+                        llmAnalysis.analysis.hallucination_risk_score < 30
+                          ? 'text-[#059669]'
+                          : llmAnalysis.analysis.hallucination_risk_score < 60
+                          ? 'text-[#D97706]'
+                          : 'text-[#DC2626]'
+                      }`}
+                    >
+                      {llmAnalysis.analysis.hallucination_risk_score}%
+                    </span>
+                    <span className="text-xs font-semibold text-[#7A8CA6]">
+                      {llmAnalysis.analysis.hallucination_risk_score < 30
+                        ? 'Low Risk (Code Verified)'
+                        : 'Medium Risk'}
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden mt-2">
+                    <div
+                      className={`h-full rounded-full ${
+                        llmAnalysis.analysis.hallucination_risk_score < 30
+                          ? 'bg-[#10B981]'
+                          : llmAnalysis.analysis.hallucination_risk_score < 60
+                          ? 'bg-[#F59E0B]'
+                          : 'bg-[#EF4444]'
+                      }`}
+                      style={{ width: `${llmAnalysis.analysis.hallucination_risk_score}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-[#DDE7F5] bg-white p-5 shadow-xs space-y-1">
+                  <span className="text-[11px] font-bold text-[#7A8CA6] uppercase tracking-wide">
+                    Bar Raiser Hiring Verdict
+                  </span>
+                  <div className="mt-2">
+                    <span className="inline-block px-3 py-1.5 rounded-lg text-xs font-black tracking-wide uppercase bg-[#DEF7EC] text-[#03543F] border border-[#BCF0DA]">
+                      {llmAnalysis.analysis.hiring_verdict}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-[#7A8CA6] mt-2 font-mono">
+                    Model: {llmAnalysis.model_used}
+                  </p>
+                </div>
+              </div>
+
+              {/* Executive Summary Callout */}
+              <div className="rounded-xl border border-[#BBD9FF] bg-[#F4F8FE] p-5">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Sparkles className="h-4 w-4 text-[#7C3AED]" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#1746A2]">
+                    Bar Raiser Executive Verdict
+                  </h4>
+                </div>
+                <p className="text-xs text-[#1E293B] leading-relaxed">
+                  {llmAnalysis.analysis.executive_summary}
+                </p>
+              </div>
+
+              {/* Keywords Match Breakdown */}
+              <div className="rounded-xl border border-[#DDE7F5] bg-white p-5 space-y-4">
+                <h4 className="text-xs font-bold text-[#0F1D38] uppercase tracking-wider">
+                  ATS Keyword Cloud Breakdown
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-[#059669] font-bold block mb-2">
+                      ✓ Confirmed ATS Keywords ({llmAnalysis.analysis.ats_keywords_found?.length || 0}):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {llmAnalysis.analysis.ats_keywords_found?.map((k: string) => (
+                        <span
+                          key={k}
+                          className="px-2.5 py-1 rounded-md bg-[#ECFDF5] text-[#065F46] font-mono text-[11px] font-bold border border-[#A7F3D0]"
+                        >
+                          {k}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[#D97706] font-bold block mb-2">
+                      ⚠ High-Value Missing Criteria ({llmAnalysis.analysis.ats_keywords_missing?.length || 0}):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {llmAnalysis.analysis.ats_keywords_missing?.map((k: string) => (
+                        <span
+                          key={k}
+                          className="px-2.5 py-1 rounded-md bg-[#FFFBEB] text-[#92400E] font-mono text-[11px] font-bold border border-[#FDE68A]"
+                        >
+                          {k}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hallucination / Inflated Claim Verification */}
+              {llmAnalysis.analysis.hallucination_analysis?.length > 0 && (
+                <div className="rounded-xl border border-[#DDE7F5] bg-white p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-[#1746A2]" />
+                    <h4 className="text-xs font-bold text-[#0F1D38] uppercase tracking-wider">
+                      Resume Claims vs. AST Code Evidence Audit
+                    </h4>
+                  </div>
+                  <div className="space-y-3">
+                    {llmAnalysis.analysis.hallucination_analysis.map((item: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-lg border border-[#DDE7F5] bg-[#F8FAFD] space-y-1.5 text-xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-[#0F1D38]">"{item.claim}"</span>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                              item.risk_level === 'Low'
+                                ? 'bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]'
+                                : 'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]'
+                            }`}
+                          >
+                            {item.risk_level} Risk
+                          </span>
+                        </div>
+                        <p className="text-[11.5px] text-[#5A6E85]">{item.verdict}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Actionable STAR Bullet Rewrites */}
+              {llmAnalysis.analysis.star_rewrites?.length > 0 && (
+                <div className="rounded-xl border border-[#DDE7F5] bg-white p-5 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Edit3 className="h-4 w-4 text-[#7C3AED]" />
+                    <h4 className="text-xs font-bold text-[#0F1D38] uppercase tracking-wider">
+                      Quantified STAR Bullet Rewrites (Gemini Enhanced)
+                    </h4>
+                  </div>
+                  <div className="space-y-3">
+                    {llmAnalysis.analysis.star_rewrites.map((star: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-xl border border-[#DDE7F5] bg-[#F8FAFD] space-y-2 text-xs"
+                      >
+                        <div>
+                          <span className="text-[11px] font-semibold text-[#7A8CA6] block mb-0.5">
+                            Original Bullet:
+                          </span>
+                          <p className="line-through text-[#64748B] italic">{star.original_bullet}</p>
+                        </div>
+                        <div className="pt-2 border-t border-[#E2E8F0]">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span className="text-[11px] font-bold text-[#059669]">
+                              STAR Rewrite with Evidence & Metrics:
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#DEF7EC] text-[#03543F] border border-[#BCF0DA]">
+                              {star.impact_delta}
+                            </span>
+                          </div>
+                          <p className="font-semibold text-[#0F1D38] leading-relaxed">
+                            {star.improved_bullet}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 14-Day Preparation & Proof Roadmap */}
+              {llmAnalysis.analysis.preparation_roadmap_14d?.length > 0 && (
+                <div className="rounded-xl border border-[#DDE7F5] bg-white p-5 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-4 w-4 text-[#D97706]" />
+                    <h4 className="text-xs font-bold text-[#0F1D38] uppercase tracking-wider">
+                      14-Day Technical Proof & Hiring Roadmap
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    {llmAnalysis.analysis.preparation_roadmap_14d.map((phase: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-xl border border-[#DDE7F5] bg-[#FAFBFD] space-y-2"
+                      >
+                        <span className="px-2 py-0.5 rounded text-[10.5px] font-mono font-bold bg-[#1746A2] text-white">
+                          {phase.day_range}
+                        </span>
+                        <h5 className="font-bold text-[#0F1D38] mt-1">{phase.focus}</h5>
+                        <p className="text-[11.5px] text-[#5A6E85] leading-relaxed">
+                          {phase.deliverable}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Bar Raiser Probing Questions */}
+              {llmAnalysis.analysis.bar_raiser_questions?.length > 0 && (
+                <div className="rounded-xl border border-[#DDE7F5] bg-white p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-[#1746A2]" />
+                    <h4 className="text-xs font-bold text-[#0F1D38] uppercase tracking-wider">
+                      Bar Raiser Technical Interview Checklist
+                    </h4>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    {llmAnalysis.analysis.bar_raiser_questions.map((q: string, idx: number) => (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-2.5 p-3 rounded-lg bg-[#F8FAFD] border border-[#DDE7F5]"
+                      >
+                        <span className="h-5 w-5 rounded-full bg-[#1746A2] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                          {idx + 1}
+                        </span>
+                        <span className="font-medium text-[#0F1D38] leading-relaxed">{q}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── TAB 1: STRENGTHS & FEW-SHOT RECOMMENDATIONS ── */}
       {viewTab === 'insights' && (

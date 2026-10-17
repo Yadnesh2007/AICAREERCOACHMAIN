@@ -33,11 +33,12 @@ import { requestGoogleOtp, verifyGoogleOtp } from '../lib/api';
 export interface AuthUser {
   name: string;
   email: string;
-  role: 'student' | 'employee' | 'employer';
+  role: 'student' | 'employee' | 'employer' | 'admin' | 'hr';
   provider?: 'email' | 'github' | 'google';
   avatar?: string;
   githubHandle?: string;
   google_verified?: boolean;
+  permissions?: string[];
 }
 
 interface AuthPageProps {
@@ -73,6 +74,7 @@ const PRESET_GOOGLE_ACCOUNTS = [
     initial: 'Y',
     role: 'Candidate Software Engineer',
     color: '#1A73E8',
+    assignedRole: 'student' as const,
   },
   {
     name: 'SkillAura Engineer',
@@ -80,6 +82,15 @@ const PRESET_GOOGLE_ACCOUNTS = [
     initial: 'S',
     role: 'AST Verification Demo',
     color: '#0D652D',
+    assignedRole: 'employee' as const,
+  },
+  {
+    name: 'Sarah Connor (HR Director)',
+    email: 'hr.admin@skillaura.ai',
+    initial: 'H',
+    role: 'HR & Bar Raiser Admin',
+    color: '#7C3AED',
+    assignedRole: 'admin' as const,
   },
 ];
 
@@ -105,6 +116,13 @@ const ROLES = [
     icon: Building2,
     color: '#D97706',
   },
+  {
+    id: 'admin' as const,
+    label: 'HR / Admin',
+    desc: 'Verify candidate work & manage permissions',
+    icon: ShieldCheck,
+    color: '#7C3AED',
+  },
 ];
 
 const FEATURES = [
@@ -116,7 +134,7 @@ const FEATURES = [
 
 export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [role, setRole] = useState<'student' | 'employee' | 'employer'>('student');
+  const [role, setRole] = useState<'student' | 'employee' | 'employer' | 'admin' | 'hr'>('student');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -133,7 +151,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
   const [googleStep, setGoogleStep] = useState<'account' | 'otp' | 'success'>('account');
   const [googleAccount, setGoogleAccount] = useState('yadnesh.developer@gmail.com');
   const [isCustomGoogleEmail, setIsCustomGoogleEmail] = useState(false);
-  const [googleRole, setGoogleRole] = useState<'student' | 'employee' | 'employer'>('student');
+  const [googleRole, setGoogleRole] = useState<'student' | 'employee' | 'employer' | 'admin' | 'hr'>('student');
   const [googleOtp, setGoogleOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [otpError, setOtpError] = useState('');
   const [otpCountdown, setOtpCountdown] = useState(45);
@@ -205,6 +223,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
       return;
     }
     setGoogleAccount(chosenEmail);
+    const matchingPreset = PRESET_GOOGLE_ACCOUNTS.find((p) => p.email.toLowerCase() === chosenEmail.toLowerCase());
+    if (matchingPreset?.assignedRole) {
+      setGoogleRole(matchingPreset.assignedRole);
+    }
     setOtpError('');
     setIsGoogleLoading(true);
 
@@ -368,6 +390,25 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
     onAuth(demoUser);
   };
 
+  const handleAdminDemo = () => {
+    const adminUser: AuthUser = {
+      name: 'Sarah Connor (HR Bar Raiser)',
+      email: 'hr.admin@skillaura.ai',
+      role: 'admin',
+      provider: 'email',
+      permissions: [
+        'verify_work',
+        'grant_permissions',
+        'audit_evidence',
+        'approve_dossier',
+        'manage_candidates',
+        'access_admin_hub',
+      ],
+    };
+    localStorage.setItem('skillaura_auth_user', JSON.stringify(adminUser));
+    onAuth(adminUser);
+  };
+
   const inputBase = `w-full px-4 py-3 rounded-xl border text-sm font-medium bg-white transition-all duration-150 outline-none focus:ring-2 focus:ring-[#3978E8]/30`;
 
   return (
@@ -488,7 +529,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
                     <label className="block text-xs font-bold text-[#475874] uppercase tracking-wider mb-2">
                       I am a…
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {ROLES.map((r) => {
                         const Icon = r.icon;
                         const active = role === r.id;
@@ -641,13 +682,22 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
                   </button>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-[#F0F5FC] text-center">
+                <div className="mt-5 pt-4 border-t border-[#F0F5FC] flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-center">
                   <button
                     type="button"
                     onClick={handleQuickDemo}
                     className="text-xs text-[#7A8CA6] hover:text-[#3978E8] font-medium transition-colors hover:underline underline-offset-2"
                   >
-                    🚀 Skip sign-in — Try demo instantly
+                    🚀 Candidate Demo (Student)
+                  </button>
+                  <span className="hidden sm:inline text-[#DDE7F5]">·</span>
+                  <button
+                    type="button"
+                    onClick={handleAdminDemo}
+                    className="text-xs text-[#7C3AED] hover:text-[#6D28D9] font-bold transition-colors hover:underline underline-offset-2 flex items-center gap-1"
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5 text-[#7C3AED]" />
+                    <span>Login as HR / Admin Bar Raiser</span>
                   </button>
                 </div>
               </motion.div>
@@ -815,8 +865,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
                         <label className="block text-xs font-medium text-[#5F6368] mb-1">
                           SkillAura Profile Role:
                         </label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {(['student', 'employee', 'employer'] as const).map((r) => (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                          {(['student', 'employee', 'employer', 'admin'] as const).map((r) => (
                             <button
                               key={r}
                               type="button"
@@ -827,7 +877,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
                                   : 'border-[#DADCE0] text-[#5F6368] hover:bg-[#F8FAFD]'
                               }`}
                             >
-                              {r}
+                              {r === 'admin' ? 'HR / Admin' : r}
                             </button>
                           ))}
                         </div>
