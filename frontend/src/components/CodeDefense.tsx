@@ -10,6 +10,8 @@ import {
   FileCode2,
   RefreshCw,
   HelpCircle,
+  Zap,
+  ExternalLink,
 } from 'lucide-react';
 import {
   startCodeDefense,
@@ -21,11 +23,19 @@ import {
 interface CodeDefenseProps {
   assessmentId: string;
   initialEvidenceId?: string;
+  connectedRepoUrl?: string;
+  connectedRepoName?: string;
+  connectedBranch?: string;
+  onOpenConnectRepo?: () => void;
 }
 
 export const CodeDefense: React.FC<CodeDefenseProps> = ({
   assessmentId,
   initialEvidenceId,
+  connectedRepoUrl,
+  connectedRepoName = 'Yadnesh2007/SAHAYOG',
+  connectedBranch = 'main',
+  onOpenConnectRepo,
 }) => {
   const [session, setSession] = useState<any>(null);
   const [answer, setAnswer] = useState<string>('');
@@ -185,14 +195,39 @@ export const CodeDefense: React.FC<CodeDefenseProps> = ({
               <RefreshCw className="h-3.5 w-3.5" />
               <span>Next Evidence</span>
             </button>
+            {/* Quick Launch Codespace */}
             <a
-              href="https://github.com/Yadnesh2007/AICOACH2"
+              href={`https://github.com/codespaces/new?repo=${encodeURIComponent(connectedRepoName || 'Yadnesh2007/SAHAYOG')}&ref=${encodeURIComponent(connectedBranch || 'main')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2.5 rounded-xl bg-[#0E2E72] hover:bg-[#1746A2] text-[#FFC66B] font-black text-xs transition-all flex items-center justify-center gap-1.5 border border-[#FFC66B]/30 shadow-md shadow-[#0E2E72]/40 shrink-0"
+              title={`Launch GitHub Codespace for ${connectedRepoName || 'connected repository'}`}
+            >
+              <Zap className="h-3.5 w-3.5 fill-current text-[#FFC66B]" />
+              <span>⚡ Codespace</span>
+            </a>
+
+            <a
+              href={connectedRepoUrl || 'https://github.com/Yadnesh2007/SAHAYOG'}
               target="_blank"
               rel="noreferrer"
               className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0"
+              title={`View ${connectedRepoName || 'connected repository'} on GitHub`}
             >
-              <span>GitHub Repo</span>
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>{connectedRepoName || 'GitHub Repo'}</span>
             </a>
+
+            {onOpenConnectRepo && (
+              <button
+                type="button"
+                onClick={onOpenConnectRepo}
+                className="px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#FFC66B] font-bold text-xs transition-all flex items-center justify-center gap-1 shrink-0"
+                title="Switch connected account or repository"
+              >
+                <span>Switch Repo</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -52,6 +52,7 @@ export const App: React.FC = () => {
   const [isCodeInspectorOpen, setIsCodeInspectorOpen] = useState<boolean>(false);
   const [connectedRepoUrl, setConnectedRepoUrl] = useState<string>('https://github.com/Yadnesh2007/SAHAYOG');
   const [connectedRepoName, setConnectedRepoName] = useState<string>('Yadnesh2007/SAHAYOG');
+  const [connectedBranch, setConnectedBranch] = useState<string>('main');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('comp_stripe');
   const hasCustomTargetSelected = useRef<boolean>(false);
   const [subscriptionPlan, setSubscriptionPlan] = useState<PlanType>(() => {
@@ -65,10 +66,11 @@ export const App: React.FC = () => {
     setTimeout(() => setToastMessage(null), 6000);
   };
 
-  const handleRepoConnected = (repoUrl: string, repoName: string, branch: string) => {
+  const handleRepoConnected = (repoUrl: string, repoName: string, branch: string = 'main') => {
     setConnectedRepoUrl(repoUrl);
     setConnectedRepoName(repoName);
-    setToastMessage(`🔗 Linked GitHub Repo: ${repoName} (${branch}). AST evidence indexed!`);
+    setConnectedBranch(branch);
+    setToastMessage(`🔗 Linked GitHub Repo: ${repoName} (${branch}). AST evidence indexed & Codespace ready!`);
     setTimeout(() => setToastMessage(null), 6000);
   };
 
@@ -307,6 +309,7 @@ export const App: React.FC = () => {
         onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
         onOpenCodeInspector={() => setIsCodeInspectorOpen(true)}
         connectedRepoName={connectedRepoName}
+        connectedBranch={connectedBranch}
         onToggleAdminMode={handleToggleAdminMode}
       />
 
@@ -324,6 +327,8 @@ export const App: React.FC = () => {
         onClose={() => setIsConnectRepoOpen(false)}
         onRepoConnected={handleRepoConnected}
         currentRepoUrl={connectedRepoUrl}
+        currentRepoName={connectedRepoName}
+        currentBranch={connectedBranch}
       />
 
       {/* Code & Document Inspector (% AI vs Handwritten) */}
@@ -351,6 +356,8 @@ export const App: React.FC = () => {
                 onSelectTargetCompany={handleSelectTargetCompany}
                 selectedCompanyId={selectedCompanyId}
                 connectedRepoUrl={connectedRepoUrl}
+                connectedRepoName={connectedRepoName}
+                connectedBranch={connectedBranch}
               />
             </motion.div>
           )}
@@ -361,6 +368,10 @@ export const App: React.FC = () => {
                 assessmentId={assessment?.id || 'asmt_init_stripe_01'}
                 onSimulatePush={handleSimulatePush}
                 isSimulating={isSimulating}
+                connectedRepoUrl={connectedRepoUrl}
+                connectedRepoName={connectedRepoName}
+                connectedBranch={connectedBranch}
+                onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
               />
             </motion.div>
           )}
@@ -369,6 +380,10 @@ export const App: React.FC = () => {
             <motion.div key="passport" {...pageTransition}>
               <EvidencePassport
                 assessmentId={assessment?.id || 'asmt_init_stripe_01'}
+                connectedRepoUrl={connectedRepoUrl}
+                connectedRepoName={connectedRepoName}
+                connectedBranch={connectedBranch}
+                onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
               />
             </motion.div>
           )}
@@ -379,6 +394,10 @@ export const App: React.FC = () => {
                 assessmentId={assessment?.id || 'asmt_init_stripe_01'}
                 onSimulatePush={handleSimulatePush}
                 isSimulating={isSimulating}
+                connectedRepoUrl={connectedRepoUrl}
+                connectedRepoName={connectedRepoName}
+                connectedBranch={connectedBranch}
+                onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
               />
             </motion.div>
           )}
@@ -388,6 +407,10 @@ export const App: React.FC = () => {
               <CodeDefense
                 assessmentId={assessment?.id || 'asmt_init_stripe_01'}
                 initialEvidenceId={selectedEvidenceId}
+                connectedRepoUrl={connectedRepoUrl}
+                connectedRepoName={connectedRepoName}
+                connectedBranch={connectedBranch}
+                onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
               />
             </motion.div>
           )}
@@ -396,13 +419,22 @@ export const App: React.FC = () => {
             <motion.div key="skillmap" {...pageTransition}>
               <SkillMap
                 assessmentId={assessment?.id || 'asmt_init_stripe_01'}
+                connectedRepoUrl={connectedRepoUrl}
+                connectedRepoName={connectedRepoName}
+                connectedBranch={connectedBranch}
+                onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
               />
             </motion.div>
           )}
 
           {activeTab === 'coach' && (
             <motion.div key="coach" {...pageTransition}>
-              <NotebookCoach />
+              <NotebookCoach
+                connectedRepoUrl={connectedRepoUrl}
+                connectedRepoName={connectedRepoName}
+                connectedBranch={connectedBranch}
+                onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
+              />
             </motion.div>
           )}
 
@@ -413,6 +445,10 @@ export const App: React.FC = () => {
                 job={job!}
                 onSimulatePush={handleSimulatePush}
                 isSimulating={isSimulating}
+                connectedRepoUrl={connectedRepoUrl}
+                connectedRepoName={connectedRepoName}
+                connectedBranch={connectedBranch}
+                onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
               />
             </motion.div>
           )}

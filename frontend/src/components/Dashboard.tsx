@@ -46,6 +46,8 @@ interface DashboardProps {
   onSelectTargetCompany?: (company: string, role: string, url: string, companyId?: string) => void;
   selectedCompanyId?: string;
   connectedRepoUrl?: string;
+  connectedRepoName?: string;
+  connectedBranch?: string;
 }
 
 const fadeUp: any = {
@@ -147,6 +149,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onSelectTargetCompany,
   selectedCompanyId = 'comp_stripe',
   connectedRepoUrl,
+  connectedRepoName = 'Yadnesh2007/SAHAYOG',
+  connectedBranch = 'main',
 }) => {
   const [expandedVerdict, setExpandedVerdict] = useState<string | null>(null);
 
@@ -227,15 +231,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </button>
             )}
 
+            {/* Direct GitHub Codespace Launcher */}
+            <a
+              href={`https://github.com/codespaces/new?repo=${encodeURIComponent(connectedRepoName || 'Yadnesh2007/SAHAYOG')}&ref=${encodeURIComponent(connectedBranch || 'main')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-2 rounded-xl bg-[#0E2E72] hover:bg-[#1746A2] border border-[#FFC66B]/30 text-[#FFC66B] font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0"
+              title={`Launch GitHub Codespace for ${connectedRepoName || 'active repository'}`}
+            >
+              <Zap className="h-3.5 w-3.5 fill-current text-[#FFC66B]" />
+              <span>⚡ Codespace</span>
+            </a>
+
             {/* Connect GitHub Repo Button */}
             {onOpenConnectRepo && (
               <button
                 onClick={onOpenConnectRepo}
                 className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0"
-                title="Connect custom GitHub repo or change repository target"
+                title={`Connected: ${connectedRepoName || 'Connect GitHub Repository'}`}
               >
                 <Github className="h-3.5 w-3.5 text-white" />
-                <span>Connect Repo</span>
+                <span>{connectedRepoName || 'Connect Repo'}</span>
               </button>
             )}
 

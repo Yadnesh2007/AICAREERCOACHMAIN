@@ -41,6 +41,7 @@ interface NavbarProps {
   onOpenConnectRepo?: () => void;
   onOpenCodeInspector?: () => void;
   connectedRepoName?: string;
+  connectedBranch?: string;
   onToggleAdminMode?: () => void;
 }
 
@@ -71,9 +72,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenConnectRepo,
   onOpenCodeInspector,
   connectedRepoName,
+  connectedBranch = 'main',
   onToggleAdminMode,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const codespaceUrl = `https://github.com/codespaces/new?repo=${encodeURIComponent(connectedRepoName || 'Yadnesh2007/SAHAYOG')}&ref=${encodeURIComponent(connectedBranch || 'main')}`;
 
   return (
     <>
@@ -154,6 +158,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Right Controls */}
             <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+              {/* Direct GitHub Codespace Launcher */}
+              <a
+                href={codespaceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Launch GitHub Codespace for ${connectedRepoName || 'connected repository'}`}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#0E2E72]/20 bg-[#0E2E72] hover:bg-[#1746A2] text-[#FFC66B] text-[11px] font-bold shadow-xs transition-all shrink-0 active:scale-95"
+              >
+                <Zap className="h-3.5 w-3.5 fill-current text-[#FFC66B]" />
+                <span className="hidden sm:inline">Codespace</span>
+              </a>
+
               {/* Connect GitHub Repo */}
               {onOpenConnectRepo && (
                 <button
@@ -162,7 +178,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-[#DDE7F5] bg-[#F8FAFD] hover:bg-[#EEF4FD] text-[#0F1D38] text-[11px] font-semibold transition-all shrink-0"
                 >
                   <Github className="h-3.5 w-3.5 text-[#0F1D38]" />
-                  <span className="hidden 2xl:inline max-w-[95px] truncate">
+                  <span className="hidden xl:inline max-w-[110px] truncate">
                     {connectedRepoName || 'Connect Repo'}
                   </span>
                 </button>

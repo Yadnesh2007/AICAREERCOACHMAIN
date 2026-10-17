@@ -11,11 +11,16 @@ import {
   Clock,
   Copy,
   Check,
+  Zap,
 } from 'lucide-react';
 import { fetchPassport } from '../lib/api';
 
 interface EvidencePassportProps {
   assessmentId: string;
+  connectedRepoUrl?: string;
+  connectedRepoName?: string;
+  connectedBranch?: string;
+  onOpenConnectRepo?: () => void;
 }
 
 const StatusIcon = ({ status }: { status: string }) => {
@@ -53,7 +58,13 @@ const StrengthBadge = ({ strength }: { strength: string }) => {
   );
 };
 
-export const EvidencePassport: React.FC<EvidencePassportProps> = ({ assessmentId }) => {
+export const EvidencePassport: React.FC<EvidencePassportProps> = ({
+  assessmentId,
+  connectedRepoUrl,
+  connectedRepoName = 'Yadnesh2007/SAHAYOG',
+  connectedBranch = 'main',
+  onOpenConnectRepo,
+}) => {
   const [passport, setPassport] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterStrength, setFilterStrength] = useState<string>('all');
@@ -175,15 +186,39 @@ export const EvidencePassport: React.FC<EvidencePassportProps> = ({ assessmentId
               <Download className="h-4 w-4" />
               <span>Export Verified JSON</span>
             </button>
+            {/* Quick Launch Codespace */}
             <a
-              href="https://github.com/Yadnesh2007/AICOACH2"
+              href={`https://github.com/codespaces/new?repo=${encodeURIComponent(connectedRepoName || 'Yadnesh2007/SAHAYOG')}&ref=${encodeURIComponent(connectedBranch || 'main')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-3 rounded-xl bg-[#0E2E72] hover:bg-[#1746A2] text-[#FFC66B] font-black text-sm transition-all flex items-center justify-center gap-2 border border-[#FFC66B]/30 shadow-md shadow-[#0E2E72]/40 shrink-0"
+              title={`Launch GitHub Codespace for ${connectedRepoName || 'connected repository'}`}
+            >
+              <Zap className="h-4 w-4 fill-current text-[#FFC66B]" />
+              <span>⚡ Open Codespace</span>
+            </a>
+
+            <a
+              href={connectedRepoUrl || 'https://github.com/Yadnesh2007/SAHAYOG'}
               target="_blank"
               rel="noreferrer"
               className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0"
+              title={`View ${connectedRepoName || 'connected repository'} on GitHub`}
             >
               <ExternalLink className="h-4 w-4" />
-              <span>GitHub Repo</span>
+              <span>{connectedRepoName || 'GitHub Repo'}</span>
             </a>
+
+            {onOpenConnectRepo && (
+              <button
+                type="button"
+                onClick={onOpenConnectRepo}
+                className="px-3 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#FFC66B] font-bold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0"
+                title="Switch connected account or repository"
+              >
+                <span>Switch Repo</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

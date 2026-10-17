@@ -46,6 +46,10 @@ import { fetchSkillMap } from '../lib/api';
 
 interface SkillMapProps {
   assessmentId: string;
+  connectedRepoUrl?: string;
+  connectedRepoName?: string;
+  connectedBranch?: string;
+  onOpenConnectRepo?: () => void;
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: any; color: string; bg: string }> = {
@@ -74,7 +78,13 @@ const NODE_POSITIONS: Record<string, { x: number; y: number }> = {
   vector_embeddings_rag: { x: 880, y: 220 },
 };
 
-export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
+export const SkillMap: React.FC<SkillMapProps> = ({
+  assessmentId,
+  connectedRepoUrl,
+  connectedRepoName = 'Yadnesh2007/SAHAYOG',
+  connectedBranch = 'main',
+  onOpenConnectRepo,
+}) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedNode, setSelectedNode] = useState<any>(null);
@@ -226,15 +236,39 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
                 <p className="text-xl font-black text-white">{nodes.length}</p>
               </div>
             </div>
+            {/* Quick Launch Codespace */}
             <a
-              href="https://github.com/Yadnesh2007/SAHAYOG"
+              href={`https://github.com/codespaces/new?repo=${encodeURIComponent(connectedRepoName || 'Yadnesh2007/SAHAYOG')}&ref=${encodeURIComponent(connectedBranch || 'main')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-3 rounded-xl bg-[#0E2E72] hover:bg-[#1746A2] text-[#FFC66B] font-black text-sm transition-all flex items-center justify-center gap-2 border border-[#FFC66B]/30 shadow-md shadow-[#0E2E72]/40 shrink-0"
+              title={`Launch GitHub Codespace for ${connectedRepoName || 'connected repository'}`}
+            >
+              <Zap className="h-4 w-4 fill-current text-[#FFC66B]" />
+              <span>⚡ Open Codespace</span>
+            </a>
+
+            <a
+              href={connectedRepoUrl || 'https://github.com/Yadnesh2007/SAHAYOG'}
               target="_blank"
               rel="noreferrer"
               className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0"
+              title={`View ${connectedRepoName || 'connected repository'} on GitHub`}
             >
               <ExternalLink className="h-4 w-4" />
-              <span>GitHub Repo</span>
+              <span>{connectedRepoName || 'GitHub Repo'}</span>
             </a>
+
+            {onOpenConnectRepo && (
+              <button
+                type="button"
+                onClick={onOpenConnectRepo}
+                className="px-3 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#FFC66B] font-bold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0"
+                title="Switch connected account or repository"
+              >
+                <span>Switch Repo</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -865,7 +899,7 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
                   Referenced file: <span className="font-mono font-semibold text-[#1746A2]">{selectedNode.evidence_ref || 'package.json'}</span>
                 </p>
                 <a
-                  href={`https://github.com/Yadnesh2007/SAHAYOG/blob/main/${
+                  href={`${connectedRepoUrl || 'https://github.com/Yadnesh2007/SAHAYOG'}/blob/${connectedBranch || 'main'}/${
                     selectedNode.evidence_ref?.includes('.sql')
                       ? 'supabase_schema.sql'
                       : selectedNode.evidence_ref?.includes('README')
@@ -877,7 +911,7 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
                   className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-[#DDE7F5] text-xs font-semibold text-[#1746A2] hover:bg-[#EFF5FE] transition-colors"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
-                  <span>Inspect on GitHub (Yadnesh2007/SAHAYOG)</span>
+                  <span>Inspect on GitHub ({connectedRepoName || 'active repo'})</span>
                 </a>
               </div>
 

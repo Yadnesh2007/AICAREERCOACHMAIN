@@ -212,6 +212,19 @@ export async function submitStripePayment(paymentData: {
   return res.json();
 }
 
+export async function fetchGitHubAccounts(): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/api/github/accounts`);
+  if (!res.ok) throw new Error('Failed to fetch GitHub accounts');
+  const data = await res.json();
+  return data.accounts || [];
+}
+
+export async function fetchAccountRepos(username: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/github/accounts/${encodeURIComponent(username)}/repos`);
+  if (!res.ok) throw new Error(`Failed to fetch repos for account ${username}`);
+  return res.json();
+}
+
 export async function connectGitHubRepo(repoUrl: string, branch: string = 'main'): Promise<any> {
   const res = await fetch(`${API_BASE}/api/github/connect-repo`, {
     method: 'POST',
@@ -223,7 +236,9 @@ export async function connectGitHubRepo(repoUrl: string, branch: string = 'main'
     throw new Error(err.detail || 'Failed to connect repository');
   }
   return res.json();
-}export async function selectTargetCompanyApi(companyId: string): Promise<any> {
+}
+
+export async function selectTargetCompanyApi(companyId: string): Promise<any> {
   const res = await fetch(`${API_BASE}/api/companies/select-target`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
