@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText,
@@ -21,8 +21,25 @@ import {
   Layers,
   Award,
   ShieldCheck,
+  UploadCloud,
+  FileUp,
+  RotateCcw,
+  CheckCircle,
+  AlertCircle,
+  FileCheck,
+  X,
+  Zap,
+  Code2,
 } from 'lucide-react';
-import { fetchCoachDataset, fetchCoachAnalysis, askCareerCoach, generateStarBulletsLlm } from '../lib/api';
+import {
+  fetchCoachDataset,
+  fetchCoachAnalysis,
+  askCareerCoach,
+  generateStarBulletsLlm,
+  uploadCvFile,
+  uploadCvText,
+  resetCvToDefault,
+} from '../lib/api';
 
 export const NotebookCoach: React.FC = () => {
   const [dataset, setDataset] = useState<any>(null);
@@ -37,6 +54,16 @@ export const NotebookCoach: React.FC = () => {
   const [viewTab, setViewTab] = useState<'insights' | 'ats_scanner' | 'star_optimizer' | 'rag' | 'cover_letter' | 'dataset'>('insights');
   const [llmBullets, setLlmBullets] = useState<Record<number, any>>({});
   const [loadingBulletLlm, setLoadingBulletLlm] = useState<Record<number, boolean>>({});
+
+  // CV / Resume File Upload State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showPasteModal, setShowPasteModal] = useState<boolean>(false);
+  const [pastedCvText, setPastedCvText] = useState<string>('');
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [detectedSkills, setDetectedSkills] = useState<string[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -115,6 +142,130 @@ export const NotebookCoach: React.FC = () => {
     }
   };
 
+  // CV File Upload & Extraction Processing
+  const processCvFile = async (file: File) => {
+    if (!file) return;
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadSuccess(null);
+
+    try {
+      const res = await uploadCvFile(file);
+      setDataset((prev: any) => ({
+        ...prev,
+        source: 'Uploaded CV',
+        is_custom: true,
+        filename: res.filename,
+        file_size: res.file_size,
+        candidate: res.candidate,
+        cv_text: res.analysis?.cv_text || prev?.cv_text,
+      }));
+      setAnalysis(res.analysis);
+      setDetectedSkills(res.detected_skills || []);
+      setUploadSuccess(
+        `Parsed ${res.filename}! Extracted candidate "${res.candidate}" with ${res.detected_skills?.length || 0} skills and ${res.match_score}% ATS match.`
+      );
+
+      // Re-hydrate RAG questions with customized CV context
+      if (res.analysis?.rag_insights) {
+        setQaHistory(
+          res.analysis.rag_insights.map((r: any) => ({
+            q: r.question,
+            a: r.answer,
+            passages: [
+              `Uploaded CV (${res.filename}): ${res.candidate}'s credentials`,
+              `Target JD: LinguaLogic AI & benchmark expectations`,
+            ],
+          }))
+        );
+      }
+    } catch (err: any) {
+      console.error('Failed to upload CV', err);
+      setUploadError(err.message || 'Failed to process resume file.');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processCvFile(file);
+  };
+
+  const handleDropFile = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processCvFile(file);
+  };
+
+  const handlePasteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pastedCvText.trim() || pastedCvText.trim().length < 40) {
+      setUploadError('Please paste at least 40 characters of resume content.');
+      return;
+    }
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadSuccess(null);
+
+    try {
+      const res = await uploadCvText(pastedCvText);
+      setDataset((prev: any) => ({
+        ...prev,
+        source: 'Pasted CV Text',
+        is_custom: true,
+        filename: 'pasted_resume.txt',
+        candidate: res.candidate,
+        cv_text: pastedCvText,
+      }));
+      setAnalysis(res.analysis);
+      setDetectedSkills(res.detected_skills || []);
+      setUploadSuccess(
+        `Parsed pasted resume for "${res.candidate}" with ${res.detected_skills?.length || 0} skills and ${res.match_score}% ATS match.`
+      );
+      setShowPasteModal(false);
+      setPastedCvText('');
+
+      if (res.analysis?.rag_insights) {
+        setQaHistory(
+          res.analysis.rag_insights.map((r: any) => ({
+            q: r.question,
+            a: r.answer,
+            passages: [
+              `Pasted Resume: ${res.candidate}'s profile details`,
+              `Target JD: LinguaLogic AI & benchmark expectations`,
+            ],
+          }))
+        );
+      }
+    } catch (err: any) {
+      console.error('Failed to parse pasted CV', err);
+      setUploadError(err.message || 'Failed to process pasted resume.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleResetToBenchmark = async () => {
+    setIsUploading(true);
+    setUploadError(null);
+    try {
+      await resetCvToDefault();
+      const [ds, an] = await Promise.all([fetchCoachDataset(), fetchCoachAnalysis()]);
+      setDataset(ds);
+      setAnalysis(an);
+      setDetectedSkills([]);
+      setUploadSuccess('Reset CV Coach to benchmark sample CV (John Doe · NLP Data Scientist).');
+    } catch (err: any) {
+      console.error('Failed to reset CV', err);
+      setUploadError('Failed to reset to default sample.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3">
@@ -139,6 +290,15 @@ export const NotebookCoach: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Hidden File Input for CV/Resume Upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".pdf,.docx,.txt,.md,.json"
+        className="hidden"
+      />
+
       {/* Header Banner: Deep Cobalt via Sapphire to Blue with Amber accents & Companion Image */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white p-6 sm:p-8 shadow-xl shadow-[#0E2E72]/15 border border-white/10">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-[#FFC66B]/15 blur-3xl pointer-events-none" />
@@ -162,13 +322,18 @@ export const NotebookCoach: React.FC = () => {
             {/* Beginner Explainer Pills */}
             <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[11px]">
               <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Target: <strong className="text-white">LinguaLogic NLP SWE</strong>
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Candidate:{' '}
+                <strong className="text-white">{dataset?.candidate || 'John Doe'}</strong>
               </span>
               <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
-                Role Match: <strong className="text-white">{analysis?.match_analysis?.overall_score || 68}%</strong>
+                Role Match:{' '}
+                <strong className="text-white">{analysis?.match_analysis?.overall_score || 68}%</strong>
               </span>
               <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
-                ATS Score: <strong className="text-white">78%</strong>
+                File:{' '}
+                <strong className="text-white truncate max-w-[150px]">
+                  {dataset?.filename || 'sample_cv_john_doe.txt'}
+                </strong>
               </span>
             </div>
           </div>
@@ -194,7 +359,9 @@ export const NotebookCoach: React.FC = () => {
               </div>
               <div className="bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl text-center">
                 <p className="text-[9px] uppercase font-bold text-[#A7F3D0]">ATS</p>
-                <p className="text-xl font-black text-white">78%</p>
+                <p className="text-xl font-black text-white">
+                  {analysis?.match_analysis?.overall_score || 78}%
+                </p>
               </div>
             </div>
 
@@ -210,6 +377,232 @@ export const NotebookCoach: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── INTERACTIVE RESUME UPLOAD & ATS COMMAND CENTER ── */}
+      <div className="bg-white rounded-2xl border border-[#DDE7F5] shadow-sm p-5 space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-[#EFF5FE] border border-[#BBD9FF] flex items-center justify-center text-[#1746A2] shrink-0 shadow-xs">
+              <FileUp className="h-6 w-6 text-[#1746A2]" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-bold text-base text-[#0F1D38]">Resume & CV Document</h3>
+                {dataset?.is_custom ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
+                    <CheckCircle className="h-3 w-3" />
+                    <span>Custom Resume Active</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                    <span>Benchmark Sample (ai-career-coach.ipynb)</span>
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#627796] mt-0.5">
+                Active candidate:{' '}
+                <strong className="text-[#0F1D38]">{dataset?.candidate || 'John Doe'}</strong> · File:{' '}
+                <span className="font-mono text-[#1746A2]">{dataset?.filename || 'sample_cv_john_doe.txt'}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Upload and Paste Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#1746A2] to-[#2563EB] hover:from-[#0E2E72] hover:to-[#1746A2] text-white text-xs font-bold transition-all shadow-md shadow-[#1746A2]/20 disabled:opacity-50"
+            >
+              <UploadCloud className="h-4 w-4" />
+              <span>{isUploading ? 'Extracting & Scanning…' : 'Upload Resume (.PDF, .DOCX, .TXT)'}</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => setShowPasteModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-[#DDE7F5] bg-[#F8FAFD] hover:bg-[#EEF4FD] text-[#0F1D38] text-xs font-bold transition-all shadow-2xs"
+            >
+              <FileText className="h-4 w-4 text-[#3978E8]" />
+              <span>Paste Text</span>
+            </button>
+
+            {dataset?.is_custom && (
+              <button
+                type="button"
+                disabled={isUploading}
+                onClick={handleResetToBenchmark}
+                className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-[#DDE7F5] text-[#627796] hover:text-[#DC2626] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] text-xs font-semibold transition-all"
+                title="Reset to default benchmark sample CV"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Reset Sample</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Drag & Drop Visual Dropzone */}
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDropFile}
+          onClick={() => fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-xl p-4 sm:p-5 text-center cursor-pointer transition-all ${
+            isDragging
+              ? 'border-[#2563EB] bg-[#EFF5FE] scale-[1.005]'
+              : 'border-[#DDE7F5] bg-[#FBFDFF] hover:border-[#BBD9FF] hover:bg-[#F8FAFD]'
+          }`}
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-[#475874]">
+            <div className="h-9 w-9 rounded-full bg-[#EBF2FE] flex items-center justify-center text-[#1746A2] shrink-0">
+              <UploadCloud className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-bold text-[#0F1D38]">
+                Drag and drop your CV or Resume here, or <span className="text-[#2563EB] underline">browse files</span>
+              </p>
+              <p className="text-[11px] text-[#7A8CA6] mt-0.5">
+                Supports PDF, DOCX, TXT, and Markdown · Native text extraction with automatic skill categorization
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 font-mono text-[10px] text-[#7A8CA6] sm:ml-auto">
+              <span className="px-1.5 py-0.5 rounded bg-white border border-[#DDE7F5]">.PDF</span>
+              <span className="px-1.5 py-0.5 rounded bg-white border border-[#DDE7F5]">.DOCX</span>
+              <span className="px-1.5 py-0.5 rounded bg-white border border-[#DDE7F5]">.TXT</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Upload Scanning Progress Animation */}
+        {isUploading && (
+          <div className="p-4 rounded-xl bg-[#EFF5FE] border border-[#BBD9FF] flex items-center gap-3">
+            <RefreshCw className="h-5 w-5 text-[#1746A2] animate-spin shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[#1746A2]">
+                Extracting CV text & evaluating ATS keyword compatibility…
+              </p>
+              <p className="text-[11px] text-[#3B82F6]">
+                Analyzing programming skills, synthesizing custom STAR bullets, and tailoring your cover letter.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Upload Success Alert */}
+        {uploadSuccess && (
+          <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] flex items-start justify-between gap-3 text-xs text-[#065F46]">
+            <div className="flex items-start gap-2.5">
+              <CheckCircle className="h-4 w-4 text-[#10B981] shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">{uploadSuccess}</p>
+                {detectedSkills.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                    <span className="text-[10.5px] font-semibold text-[#047857]">Detected Skills:</span>
+                    {detectedSkills.map((sk) => (
+                      <span
+                        key={sk}
+                        className="px-2 py-0.5 rounded-md bg-white border border-[#A7F3D0] text-[10px] font-bold text-[#065F46]"
+                      >
+                        {sk}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setUploadSuccess(null)}
+              className="text-[#047857] hover:text-[#065F46] p-1"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Upload Error Alert */}
+        {uploadError && (
+          <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FCA5A5] flex items-center justify-between gap-3 text-xs text-[#991B1B]">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-[#EF4444] shrink-0" />
+              <p className="font-semibold">{uploadError}</p>
+            </div>
+            <button
+              onClick={() => setUploadError(null)}
+              className="text-[#991B1B] hover:text-[#7F1D1D] p-1"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── PASTE RESUME TEXT MODAL ── */}
+      {showPasteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#07132B]/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-2xl bg-white rounded-2xl p-6 shadow-2xl border border-[#DDE7F5] space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-[#1746A2]" />
+                <h3 className="font-bold text-base text-[#0F1D38]">Paste Resume / CV Text</h3>
+              </div>
+              <button
+                onClick={() => setShowPasteModal(false)}
+                className="p-1 rounded-lg text-[#7A8CA6] hover:bg-[#F3F7FC]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#627796]">
+              Paste the text or Markdown content of your resume below. SkillAura will automatically detect your skills, calculate your ATS match score, and generate custom STAR bullets.
+            </p>
+
+            <form onSubmit={handlePasteSubmit} className="space-y-4">
+              <div>
+                <textarea
+                  rows={10}
+                  value={pastedCvText}
+                  onChange={(e) => setPastedCvText(e.target.value)}
+                  placeholder="Paste your CV / Resume text here...&#10;&#10;e.g.&#10;Yadnesh Gandhele&#10;Software Engineer&#10;Skills: Python, FastAPI, PostgreSQL, Pytest, Docker&#10;Experience: Designed REST APIs and optimized database queries..."
+                  className="w-full p-4 rounded-xl border border-[#DDE7F5] text-xs font-mono text-[#0F1D38] outline-none focus:border-[#1746A2] focus:ring-2 focus:ring-[#1746A2]/20 resize-none leading-relaxed"
+                  required
+                />
+                <div className="flex items-center justify-between text-[11px] text-[#7A8CA6] mt-1">
+                  <span>Minimum 40 characters</span>
+                  <span>{pastedCvText.length} characters</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPasteModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-[#DDE7F5] text-xs font-bold text-[#475874] hover:bg-[#F8FAFD]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploading || pastedCvText.trim().length < 40}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#1746A2] to-[#2563EB] text-white text-xs font-bold hover:from-[#0E2E72] hover:to-[#1746A2] transition-all shadow-sm disabled:opacity-50"
+                >
+                  {isUploading ? 'Analyzing Resume…' : 'Parse & Scan Resume'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
 
       {/* Sub-nav Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar border-b border-[#DDE7F5] pb-2">

@@ -361,4 +361,58 @@ export async function verifyGoogleOtp(
   return res.json();
 }
 
+export async function uploadCvFile(
+  file: File,
+  targetCompany?: string,
+  targetRole?: string
+): Promise<any> {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (targetCompany) formData.append('target_company', targetCompany);
+  if (targetRole) formData.append('target_role', targetRole);
+
+  const res = await fetch(`${API_BASE}/api/coach/upload-cv`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to upload and parse CV');
+  }
+  return res.json();
+}
+
+export async function uploadCvText(
+  cvText: string,
+  targetCompany?: string,
+  targetRole?: string
+): Promise<any> {
+  const formData = new FormData();
+  formData.append('cv_text', cvText);
+  if (targetCompany) formData.append('target_company', targetCompany);
+  if (targetRole) formData.append('target_role', targetRole);
+
+  const res = await fetch(`${API_BASE}/api/coach/upload-cv`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to parse CV text');
+  }
+  return res.json();
+}
+
+export async function resetCvToDefault(): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/coach/reset-cv`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to reset CV to benchmark sample');
+  }
+  return res.json();
+}
+
+
 
