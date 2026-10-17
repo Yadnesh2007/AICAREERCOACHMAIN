@@ -6,7 +6,7 @@ from .models import db_models
 from .data.seed import seed_database
 
 # Routers
-from .api import health, github, jobs, assessments, events, webhooks, innovations, demo, career_coach
+from .api import health, github, jobs, assessments, events, webhooks, innovations, demo, career_coach, code_inspector
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -42,6 +42,7 @@ app.include_router(webhooks.router)
 app.include_router(innovations.router)
 app.include_router(demo.router)
 app.include_router(career_coach.router)
+app.include_router(code_inspector.router)
 
 if __name__ == "__main__":
     import uvicorn

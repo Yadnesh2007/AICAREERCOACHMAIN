@@ -11,6 +11,8 @@ import { DemoProofDossier } from './components/DemoProofDossier';
 import { NotebookCoach } from './components/NotebookCoach';
 import { AuthPage, AuthUser } from './components/AuthPage';
 import { SubscriptionModal, PlanType } from './components/SubscriptionModal';
+import { ConnectRepoModal } from './components/ConnectRepoModal';
+import { CodeInspectorModal } from './components/CodeInspectorModal';
 import { Assessment, Job } from './lib/types';
 import { 
   checkBackendHealth, 
@@ -28,7 +30,14 @@ const pageTransition: any = {
 };
 
 export const App: React.FC = () => {
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(() => {
+    try {
+      const saved = localStorage.getItem('skillaura_auth_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [job, setJob] = useState<Job | null>(null);
@@ -37,6 +46,10 @@ export const App: React.FC = () => {
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | undefined>(undefined);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isPricingOpen, setIsPricingOpen] = useState<boolean>(false);
+  const [isConnectRepoOpen, setIsConnectRepoOpen] = useState<boolean>(false);
+  const [isCodeInspectorOpen, setIsCodeInspectorOpen] = useState<boolean>(false);
+  const [connectedRepoUrl, setConnectedRepoUrl] = useState<string>('https://github.com/Yadnesh2007/SAHAYOG');
+  const [connectedRepoName, setConnectedRepoName] = useState<string>('Yadnesh2007/SAHAYOG');
   const [subscriptionPlan, setSubscriptionPlan] = useState<PlanType>(() => {
     return (localStorage.getItem('skillaura_plan') as PlanType) || 'free';
   });
@@ -46,6 +59,26 @@ export const App: React.FC = () => {
     localStorage.setItem('skillaura_plan', plan);
     setToastMessage(`🎉 Upgraded to ${plan.toUpperCase()} Plan! All corresponding features unlocked.`);
     setTimeout(() => setToastMessage(null), 6000);
+  };
+
+  const handleRepoConnected = (repoUrl: string, repoName: string, branch: string) => {
+    setConnectedRepoUrl(repoUrl);
+    setConnectedRepoName(repoName);
+    setToastMessage(`🔗 Linked GitHub Repo: ${repoName} (${branch}). AST evidence indexed!`);
+    setTimeout(() => setToastMessage(null), 6000);
+  };
+
+  const handleSelectTargetCompany = (company: string, role: string, url: string) => {
+    if (job) {
+      setJob({
+        ...job,
+        employer: company,
+        title: role,
+        source_url: url,
+      });
+      setToastMessage(`🎯 Active Goal Target switched to: ${role} at ${company}!`);
+      setTimeout(() => setToastMessage(null), 6000);
+    }
   };
 
   // Sync data from backend
@@ -187,17 +220,38 @@ export const App: React.FC = () => {
         isSimulating={isSimulating}
         version={assessment?.version || 1}
         authUser={authUser}
-        onLogout={() => setAuthUser(null)}
+        onLogout={() => {
+          localStorage.removeItem('skillaura_auth_user');
+          setAuthUser(null);
+        }}
         subscriptionPlan={subscriptionPlan}
         onOpenPricing={() => setIsPricingOpen(true)}
+        onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
+        onOpenCodeInspector={() => setIsCodeInspectorOpen(true)}
+        connectedRepoName={connectedRepoName}
       />
 
-      {/* Subscription & Pricing Modal */}
+      {/* Subscription & Pricing Modal (with Stripe Payments Gateway) */}
       <SubscriptionModal
         isOpen={isPricingOpen}
         onClose={() => setIsPricingOpen(false)}
         currentPlan={subscriptionPlan}
         onSelectPlan={handleSelectPlan}
+      />
+
+      {/* GitHub Repository Connect Modal */}
+      <ConnectRepoModal
+        isOpen={isConnectRepoOpen}
+        onClose={() => setIsConnectRepoOpen(false)}
+        onRepoConnected={handleRepoConnected}
+        currentRepoUrl={connectedRepoUrl}
+      />
+
+      {/* Code & Document Inspector (% AI vs Handwritten) */}
+      <CodeInspectorModal
+        isOpen={isCodeInspectorOpen}
+        onClose={() => setIsCodeInspectorOpen(false)}
+        repoUrl={connectedRepoUrl}
       />
 
       {/* Main Content Area */}
@@ -213,6 +267,10 @@ export const App: React.FC = () => {
                 onOpenCodeDefense={handleOpenCodeDefense}
                 subscriptionPlan={subscriptionPlan}
                 onOpenPricing={() => setIsPricingOpen(true)}
+                onOpenCodeInspector={() => setIsCodeInspectorOpen(true)}
+                onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
+                onSelectTargetCompany={handleSelectTargetCompany}
+                connectedRepoUrl={connectedRepoUrl}
               />
             </motion.div>
           )}

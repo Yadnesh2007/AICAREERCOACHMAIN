@@ -17,12 +17,17 @@ import {
   Shield,
   Zap,
   Award,
+  X,
+  ExternalLink,
 } from 'lucide-react';
 
 export interface AuthUser {
   name: string;
   email: string;
   role: 'student' | 'employee' | 'employer';
+  provider?: 'email' | 'github' | 'google';
+  avatar?: string;
+  githubHandle?: string;
 }
 
 interface AuthPageProps {
@@ -70,6 +75,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Social Auth Modals
+  const [showGithubModal, setShowGithubModal] = useState(false);
+  const [githubHandle, setGithubHandle] = useState('Yadnesh2007');
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [googleAccount, setGoogleAccount] = useState('yadnesh.developer@gmail.com');
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (mode === 'signup' && !name.trim()) errs.name = 'Name is required';
@@ -85,13 +96,58 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
     e.preventDefault();
     if (!validate()) return;
     setIsLoading(true);
-    await new Promise(r => setTimeout(r, 900));
+    await new Promise((r) => setTimeout(r, 600));
     setIsLoading(false);
-    onAuth({ name: name || email.split('@')[0], email, role });
+    const user: AuthUser = {
+      name: name || email.split('@')[0],
+      email,
+      role,
+      provider: 'email',
+    };
+    localStorage.setItem('skillaura_auth_user', JSON.stringify(user));
+    onAuth(user);
+  };
+
+  const handleGitHubAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    const handle = githubHandle.trim() || 'Yadnesh2007';
+    const user: AuthUser = {
+      name: handle,
+      email: `${handle.toLowerCase()}@users.noreply.github.com`,
+      role: 'student',
+      provider: 'github',
+      githubHandle: handle,
+      avatar: `https://github.com/${handle}.png`,
+    };
+    localStorage.setItem('skillaura_auth_user', JSON.stringify(user));
+    setShowGithubModal(false);
+    onAuth(user);
+  };
+
+  const handleGoogleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    const chosenEmail = googleAccount.trim() || 'developer@gmail.com';
+    const user: AuthUser = {
+      name: chosenEmail.split('@')[0].replace('.', ' '),
+      email: chosenEmail,
+      role: 'student',
+      provider: 'google',
+    };
+    localStorage.setItem('skillaura_auth_user', JSON.stringify(user));
+    setShowGoogleModal(false);
+    onAuth(user);
   };
 
   const handleQuickDemo = () => {
-    onAuth({ name: 'Demo User', email: 'demo@skillaura.ai', role: 'student' });
+    const demoUser: AuthUser = {
+      name: 'Yadnesh (Demo)',
+      email: 'demo@skillaura.ai',
+      role: 'student',
+      githubHandle: 'Yadnesh2007',
+      provider: 'github',
+    };
+    localStorage.setItem('skillaura_auth_user', JSON.stringify(demoUser));
+    onAuth(demoUser);
   };
 
   const inputBase = `w-full px-4 py-3 rounded-xl border text-sm font-medium bg-white transition-all duration-150 outline-none focus:ring-2 focus:ring-[#3978E8]/30`;
@@ -176,7 +232,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
               {(['login', 'signup'] as const).map((m) => (
                 <button
                   key={m}
-                  onClick={() => { setMode(m); setErrors({}); }}
+                  onClick={() => {
+                    setMode(m);
+                    setErrors({});
+                  }}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                     mode === m
                       ? 'bg-white text-[#1746A2] shadow-sm border border-[#DDE7F5]'
@@ -233,12 +292,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
                         );
                       })}
                     </div>
-                    <p className="text-[11px] text-[#9AB4D8] mt-1.5 pl-1">
-                      {ROLES.find(r => r.id === role)?.desc}
-                    </p>
                   </div>
                 )}
 
+                {/* Email Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {mode === 'signup' && (
                     <div>
@@ -249,8 +306,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
                           type="text"
                           placeholder="Jane Smith"
                           value={name}
-                          onChange={e => setName(e.target.value)}
-                          className={`${inputBase} pl-10 ${errors.name ? 'border-red-400' : 'border-[#DDE7F5] focus:border-[#3978E8]'}`}
+                          onChange={(e) => setName(e.target.value)}
+                          className={`${inputBase} pl-10 ${
+                            errors.name ? 'border-red-400' : 'border-[#DDE7F5] focus:border-[#3978E8]'
+                          }`}
                         />
                       </div>
                       {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
@@ -265,8 +324,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
                         type="email"
                         placeholder="you@example.com"
                         value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        className={`${inputBase} pl-10 ${errors.email ? 'border-red-400' : 'border-[#DDE7F5] focus:border-[#3978E8]'}`}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={`${inputBase} pl-10 ${
+                          errors.email ? 'border-red-400' : 'border-[#DDE7F5] focus:border-[#3978E8]'
+                        }`}
                       />
                     </div>
                     {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
@@ -287,8 +348,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
                         type={showPassword ? 'text' : 'password'}
                         placeholder={mode === 'signup' ? 'Min. 6 characters' : '••••••••'}
                         value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        className={`${inputBase} pl-10 pr-10 ${errors.password ? 'border-red-400' : 'border-[#DDE7F5] focus:border-[#3978E8]'}`}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className={`${inputBase} pl-10 pr-10 ${
+                          errors.password ? 'border-red-400' : 'border-[#DDE7F5] focus:border-[#3978E8]'
+                        }`}
                       />
                       <button
                         type="button"
@@ -314,41 +377,46 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
                     {isLoading ? (
                       <>
                         <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                         </svg>
                         <span>Authenticating…</span>
                       </>
                     ) : (
                       <>
-                        <span>{mode === 'login' ? 'Sign In' : 'Create Account'}</span>
+                        <span>{mode === 'login' ? 'Sign In with Email' : 'Create Account'}</span>
                         <ArrowRight className="h-4 w-4" />
                       </>
                     )}
                   </motion.button>
                 </form>
 
+                {/* Social Auth Separator */}
                 <div className="flex items-center gap-3 my-5">
                   <div className="flex-1 h-px bg-[#E8F0FB]" />
-                  <span className="text-[11px] text-[#9AB4D8] font-semibold">or continue with</span>
+                  <span className="text-[11px] text-[#9AB4D8] font-semibold">or verify with</span>
                   <div className="flex-1 h-px bg-[#E8F0FB]" />
                 </div>
 
+                {/* Dedicated GitHub and Google Login Buttons */}
                 <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { Icon: Github, label: 'GitHub' },
-                    { Icon: Chrome, label: 'Google' },
-                  ].map(({ Icon, label }) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={handleQuickDemo}
-                      className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#DDE7F5] bg-white text-xs font-semibold text-[#475874] hover:border-[#BBD9FF] hover:bg-[#F8FAFD] transition-all duration-150"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {label}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setShowGithubModal(true)}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#DDE7F5] bg-white text-xs font-bold text-[#0F1D38] hover:border-[#1746A2] hover:bg-[#F8FAFD] transition-all shadow-2xs"
+                  >
+                    <Github className="h-4 w-4 text-[#0F1D38]" />
+                    <span>Login GitHub</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowGoogleModal(true)}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#DDE7F5] bg-white text-xs font-bold text-[#0F1D38] hover:border-[#3978E8] hover:bg-[#F8FAFD] transition-all shadow-2xs"
+                  >
+                    <Chrome className="h-4 w-4 text-[#EA4335]" />
+                    <span>Login Google</span>
+                  </button>
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-[#F0F5FC] text-center">
@@ -371,6 +439,104 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuth }) => {
           </p>
         </motion.div>
       </div>
+
+      {/* GitHub Login Dialog Modal */}
+      {showGithubModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#07132B]/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-[#DDE7F5] space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Github className="h-5 w-5 text-[#0F1D38]" />
+                <h3 className="font-black text-sm text-[#0F1D38]">Sign In with GitHub</h3>
+              </div>
+              <button
+                onClick={() => setShowGithubModal(false)}
+                className="p-1 rounded-lg text-[#7A8CA6] hover:bg-[#F3F7FC]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-xs text-[#627796] leading-relaxed">
+              Authenticate your GitHub identity to import your public commits, repositories, and AST skill evidence.
+            </p>
+            <form onSubmit={handleGitHubAuth} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-[#334155] mb-1">
+                  GitHub Username / Handle
+                </label>
+                <input
+                  type="text"
+                  value={githubHandle}
+                  onChange={(e) => setGithubHandle(e.target.value)}
+                  placeholder="e.g. Yadnesh2007"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDE7F5] text-xs font-mono text-[#0F1D38] outline-none focus:border-[#1746A2]"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl bg-[#0F1D38] text-white text-xs font-bold hover:bg-[#1E293B] flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Github className="h-4 w-4 text-[#FFC66B]" />
+                <span>Authorize @{githubHandle || 'user'}</span>
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Google Login Dialog Modal */}
+      {showGoogleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#07132B]/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-[#DDE7F5] space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Chrome className="h-5 w-5 text-[#EA4335]" />
+                <h3 className="font-black text-sm text-[#0F1D38]">Sign in with Google</h3>
+              </div>
+              <button
+                onClick={() => setShowGoogleModal(false)}
+                className="p-1 rounded-lg text-[#7A8CA6] hover:bg-[#F3F7FC]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-xs text-[#627796] leading-relaxed">
+              Connect your Google Workspace or personal Google account for seamless career coaching access.
+            </p>
+            <form onSubmit={handleGoogleAuth} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-[#334155] mb-1">
+                  Google Email Address
+                </label>
+                <input
+                  type="email"
+                  value={googleAccount}
+                  onChange={(e) => setGoogleAccount(e.target.value)}
+                  placeholder="developer@gmail.com"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDE7F5] text-xs font-medium text-[#0F1D38] outline-none focus:border-[#3978E8]"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl bg-[#3978E8] text-white text-xs font-bold hover:bg-[#1746A2] flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Chrome className="h-4 w-4 text-white" />
+                <span>Continue as {googleAccount.split('@')[0]}</span>
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

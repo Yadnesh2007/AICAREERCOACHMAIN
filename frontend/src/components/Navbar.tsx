@@ -18,6 +18,9 @@ import {
   RotateCcw,
   Crown,
   Zap,
+  FolderGit2,
+  Cpu,
+  Github,
 } from 'lucide-react';
 import { AuthUser } from './AuthPage';
 import { PlanType } from './SubscriptionModal';
@@ -34,6 +37,9 @@ interface NavbarProps {
   onResetDemo?: () => void;
   subscriptionPlan: PlanType;
   onOpenPricing: () => void;
+  onOpenConnectRepo?: () => void;
+  onOpenCodeInspector?: () => void;
+  connectedRepoName?: string;
 }
 
 const NAV_ITEMS = [
@@ -59,6 +65,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onResetDemo,
   subscriptionPlan,
   onOpenPricing,
+  onOpenConnectRepo,
+  onOpenCodeInspector,
+  connectedRepoName,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -125,6 +134,32 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Right Controls */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Connect GitHub Repo */}
+              {onOpenConnectRepo && (
+                <button
+                  onClick={onOpenConnectRepo}
+                  title="Connect or switch your GitHub repository"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#DDE7F5] bg-[#F8FAFD] hover:bg-[#EEF4FD] text-[#0F1D38] text-xs font-semibold transition-all shrink-0"
+                >
+                  <Github className="h-3.5 w-3.5 text-[#0F1D38]" />
+                  <span className="hidden xl:inline max-w-[110px] truncate">
+                    {connectedRepoName || 'Connect Repo'}
+                  </span>
+                </button>
+              )}
+
+              {/* Code & File AI Scanner Modal Trigger */}
+              {onOpenCodeInspector && (
+                <button
+                  onClick={onOpenCodeInspector}
+                  title="Upload code (.pdf, .py, .sql) to scan % AI vs. Handwritten"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#BBD9FF] bg-[#EFF5FE] hover:bg-[#DCEBFF] text-[#1746A2] text-xs font-bold transition-all shrink-0"
+                >
+                  <Cpu className="h-3.5 w-3.5 text-[#2563EB]" />
+                  <span className="hidden sm:inline">AI % Audit</span>
+                </button>
+              )}
+
               {/* Subscription Plans & Active Tier Badge */}
               <button
                 onClick={onOpenPricing}

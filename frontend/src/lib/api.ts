@@ -155,4 +155,68 @@ export async function resetDemo(): Promise<any> {
   return res.json();
 }
 
+export async function analyzeCodeFile(
+  code: string,
+  filename: string = 'main.py',
+  repoUrl: string = 'https://github.com/Yadnesh2007/SAHAYOG'
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/code/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, filename, repo_url: repoUrl }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Code analysis failed');
+  }
+  return res.json();
+}
+
+export async function fetchCompanyMatches(): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/api/companies/matches`);
+  if (!res.ok) throw new Error('Failed to fetch multi-company job allocations');
+  return res.json();
+}
+
+export async function fetchDomainExpansionAdvice(): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/skills/domain-expansion`);
+  if (!res.ok) throw new Error('Failed to fetch cross-domain skills advice');
+  return res.json();
+}
+
+export async function submitStripePayment(paymentData: {
+  plan_tier: string;
+  billing_cycle: string;
+  card_number: string;
+  exp_month: string;
+  exp_year: string;
+  cvc: string;
+  postal_code: string;
+  name_on_card: string;
+}): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/stripe/create-checkout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(paymentData),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Stripe payment failed');
+  }
+  return res.json();
+}
+
+export async function connectGitHubRepo(repoUrl: string, branch: string = 'main'): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/github/connect-repo`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ repo_url: repoUrl, branch }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to connect repository');
+  }
+  return res.json();
+}
+
 

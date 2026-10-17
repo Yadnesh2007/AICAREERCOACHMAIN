@@ -23,10 +23,15 @@ import {
   Lightbulb,
   ArrowRight,
   ArrowUpRight,
+  Github,
+  Cpu,
+  Upload,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { Assessment, Job, Evidence, SkillVerdict } from '../lib/types';
 import { PlanType } from './SubscriptionModal';
+import { MultiCompanyAllocation } from './MultiCompanyAllocation';
+import { DomainExpansionAdvisor } from './DomainExpansionAdvisor';
 
 interface DashboardProps {
   assessment: Assessment | null;
@@ -36,6 +41,10 @@ interface DashboardProps {
   onOpenCodeDefense: (evidenceId: string) => void;
   subscriptionPlan?: PlanType;
   onOpenPricing?: () => void;
+  onOpenCodeInspector?: () => void;
+  onOpenConnectRepo?: () => void;
+  onSelectTargetCompany?: (company: string, role: string, url: string) => void;
+  connectedRepoUrl?: string;
 }
 
 const fadeUp: any = {
@@ -132,6 +141,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenCodeDefense,
   subscriptionPlan = 'free',
   onOpenPricing,
+  onOpenCodeInspector,
+  onOpenConnectRepo,
+  onSelectTargetCompany,
+  connectedRepoUrl,
 }) => {
   const [expandedVerdict, setExpandedVerdict] = useState<string | null>(null);
 
@@ -199,6 +212,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <p className="text-[11px] font-bold text-white">Every Skill Verified</p>
               </div>
             </div>
+
+            {/* Code & Document Upload (% AI vs Handwritten) */}
+            {onOpenCodeInspector && (
+              <button
+                onClick={onOpenCodeInspector}
+                className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+                title="Upload .pdf, .py, .sql, etc. to inspect % AI vs. Handwritten code"
+              >
+                <Cpu className="h-4 w-4 text-[#FFC66B]" />
+                <span>Upload & Audit Code (% AI)</span>
+              </button>
+            )}
+
+            {/* Connect GitHub Repo Button */}
+            {onOpenConnectRepo && (
+              <button
+                onClick={onOpenConnectRepo}
+                className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+                title="Connect custom GitHub repo or change repository target"
+              >
+                <Github className="h-4 w-4 text-white" />
+                <span>Connect GitHub Repo</span>
+              </button>
+            )}
 
             <button
               disabled={isSimulating}
@@ -628,6 +665,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── MULTI-COMPANY JOB ALLOCATION SECTION ── */}
+      <div className="pt-4 border-t border-[#DDE7F5]">
+        <MultiCompanyAllocation
+          onSelectTargetCompany={onSelectTargetCompany}
+          activeCompany={job.employer}
+        />
+      </div>
+
+      {/* ── CROSS-DOMAIN SKILL EXPANSION ADVISOR SECTION ── */}
+      <div className="pt-4 border-t border-[#DDE7F5]">
+        <DomainExpansionAdvisor />
       </div>
     </div>
   );
