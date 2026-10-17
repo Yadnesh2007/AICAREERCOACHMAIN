@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Navbar } from './components/Navbar';
 import { Dashboard } from './components/Dashboard';
@@ -19,7 +19,8 @@ import {
   fetchAssessment, 
   fetchJobs, 
   simulatePush,
-  resetDemo 
+  resetDemo,
+  selectTargetCompanyApi
 } from './lib/api';
 import { Sparkles, Shield, CheckCircle2, LogOut, User, Crown } from 'lucide-react';
 
@@ -50,6 +51,8 @@ export const App: React.FC = () => {
   const [isCodeInspectorOpen, setIsCodeInspectorOpen] = useState<boolean>(false);
   const [connectedRepoUrl, setConnectedRepoUrl] = useState<string>('https://github.com/Yadnesh2007/SAHAYOG');
   const [connectedRepoName, setConnectedRepoName] = useState<string>('Yadnesh2007/SAHAYOG');
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('comp_stripe');
+  const hasCustomTargetSelected = useRef<boolean>(false);
   const [subscriptionPlan, setSubscriptionPlan] = useState<PlanType>(() => {
     return (localStorage.getItem('skillaura_plan') as PlanType) || 'free';
   });
@@ -68,14 +71,42 @@ export const App: React.FC = () => {
     setTimeout(() => setToastMessage(null), 6000);
   };
 
-  const handleSelectTargetCompany = (company: string, role: string, url: string) => {
-    if (job) {
-      setJob({
-        ...job,
-        employer: company,
-        title: role,
-        source_url: url,
-      });
+  const handleSelectTargetCompany = async (company: string, role: string, url: string, companyId?: string) => {
+    const targetId = companyId || (company.toLowerCase().includes('google') ? 'comp_google' : company.toLowerCase().includes('meta') ? 'comp_meta' : company.toLowerCase().includes('razorpay') ? 'comp_razorpay' : company.toLowerCase().includes('amazon') ? 'comp_amazon' : company.toLowerCase().includes('datadog') ? 'comp_datadog' : company.toLowerCase().includes('microsoft') ? 'comp_microsoft' : company.toLowerCase().includes('swiggy') ? 'comp_swiggy' : 'comp_stripe');
+    setSelectedCompanyId(targetId);
+    hasCustomTargetSelected.current = true;
+
+    try {
+      const res = await selectTargetCompanyApi(targetId);
+      if (res.job) setJob(res.job);
+      if (res.verdicts) {
+        setAssessment(prev => {
+          if (!prev) return prev;
+          const matchRate = res.match_rate ?? 75;
+          return {
+            ...prev,
+            verdicts: res.verdicts,
+            coverage: prev.coverage
+              ? {
+                  ...prev.coverage,
+                  demonstrated: Math.round((matchRate / 100) * prev.coverage.total_assessable),
+                }
+              : prev.coverage,
+          };
+        });
+      }
+      setToastMessage(`🎯 Active Goal Target switched to: ${role} at ${company}! Job criteria recalculated.`);
+      setTimeout(() => setToastMessage(null), 6000);
+    } catch (err) {
+      console.warn('selectTargetCompanyApi fallback', err);
+      if (job) {
+        setJob({
+          ...job,
+          employer: company,
+          title: role,
+          source_url: url,
+        });
+      }
       setToastMessage(`🎯 Active Goal Target switched to: ${role} at ${company}!`);
       setTimeout(() => setToastMessage(null), 6000);
     }
@@ -92,12 +123,23 @@ export const App: React.FC = () => {
         fetchAssessment('asmt_init_stripe_01')
       ]);
 
-      if (jobsData.length > 0) setJob(jobsData[0]);
+      // Only set initial job if user hasn't explicitly selected another employer
+      if (!hasCustomTargetSelected.current && jobsData.length > 0) {
+        setJob(jobsData[0]);
+      }
       
       setAssessment(prev => {
         if (prev && asmtData.version > prev.version) {
           setToastMessage(`⚡ Version ${asmtData.version}.0: Reassessment automatically promoted SQL query writing!`);
           setTimeout(() => setToastMessage(null), 6000);
+        }
+        // Keep verdicts for currently selected custom employer if active
+        if (hasCustomTargetSelected.current && prev?.verdicts) {
+          return {
+            ...asmtData,
+            verdicts: prev.verdicts,
+            coverage: prev.coverage ?? asmtData.coverage,
+          };
         }
         return asmtData;
       });
@@ -270,6 +312,7 @@ export const App: React.FC = () => {
                 onOpenCodeInspector={() => setIsCodeInspectorOpen(true)}
                 onOpenConnectRepo={() => setIsConnectRepoOpen(true)}
                 onSelectTargetCompany={handleSelectTargetCompany}
+                selectedCompanyId={selectedCompanyId}
                 connectedRepoUrl={connectedRepoUrl}
               />
             </motion.div>

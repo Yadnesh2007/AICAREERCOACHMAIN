@@ -11,7 +11,12 @@ import {
   RefreshCw,
   HelpCircle,
 } from 'lucide-react';
-import { startCodeDefense, submitCodeDefenseAnswer } from '../lib/api';
+import {
+  startCodeDefense,
+  submitCodeDefenseAnswer,
+  generateInterviewQuestionLlm,
+  gradeDefenseAnswerLlm
+} from '../lib/api';
 
 interface CodeDefenseProps {
   assessmentId: string;
@@ -26,7 +31,9 @@ export const CodeDefense: React.FC<CodeDefenseProps> = ({
   const [answer, setAnswer] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [generatingLlmQ, setGeneratingLlmQ] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<any>(null);
+  const [llmEvaluation, setLlmEvaluation] = useState<any>(null);
 
   const initSession = async (evidenceId?: string) => {
     setLoading(true);
@@ -34,11 +41,36 @@ export const CodeDefense: React.FC<CodeDefenseProps> = ({
       const data = await startCodeDefense(assessmentId, evidenceId);
       setSession(data);
       setFeedback(null);
+      setLlmEvaluation(null);
       setAnswer('');
     } catch (err) {
       console.error('Failed to start code defense', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateGeminiQuestion = async () => {
+    setGeneratingLlmQ(true);
+    try {
+      const qData = await generateInterviewQuestionLlm(
+        session?.skill_key || 'python_sql_fastapi',
+        session?.snippet || '',
+        'Stripe & Razorpay'
+      );
+      setSession((prev: any) => ({
+        ...prev,
+        question_title: 'Gemini Live Technical Defense: Concurrency & Transaction Bounds',
+        question_prompt: qData.question,
+        rubric: qData.evaluation_rubric,
+        engine: qData.model
+      }));
+      setFeedback(null);
+      setLlmEvaluation(null);
+    } catch (err) {
+      console.error('Failed to generate Gemini question', err);
+    } finally {
+      setGeneratingLlmQ(false);
     }
   };
 
@@ -51,8 +83,16 @@ export const CodeDefense: React.FC<CodeDefenseProps> = ({
     if (!answer.trim() || !session) return;
     setSubmitting(true);
     try {
-      const res = await submitCodeDefenseAnswer(session.session_id, answer);
+      const [res, llmRes] = await Promise.all([
+        submitCodeDefenseAnswer(session.session_id, answer),
+        gradeDefenseAnswerLlm(
+          session.question_prompt || 'Explain transaction isolation and concurrency in your code.',
+          answer,
+          ['SERIALIZABLE', 'ACID', 'lock', 'for update', 'idempotency']
+        ).catch(() => null)
+      ]);
       setFeedback(res.feedback);
+      if (llmRes) setLlmEvaluation(llmRes);
     } catch (err) {
       console.error('Failed to submit answer', err);
     } finally {
@@ -120,17 +160,36 @@ export const CodeDefense: React.FC<CodeDefenseProps> = ({
             </div>
 
             <button
-              onClick={() => initSession()}
-              className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-sm shadow-lg shadow-[#FFC66B]/30 flex items-center justify-center gap-2 transition-all active:scale-95 shrink-0"
+              onClick={handleGenerateGeminiQuestion}
+              disabled={generatingLlmQ}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-xs shadow-md shadow-[#FFC66B]/25 flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-60 shrink-0"
+              title="Generate dynamic Staff Engineer question using Gemini 1.5 Pro"
             >
-              <RefreshCw className="h-4 w-4" />
-              <span>Next Defense Question</span>
+              {generatingLlmQ ? (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-[#0E2E72]" />
+                  <span>Generating…</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5 text-[#0E2E72]" />
+                  <span>✨ Gemini Live Question</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => initSession()}
+              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shrink-0"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>Next Evidence</span>
             </button>
             <a
               href="https://github.com/Yadnesh2007/AICOACH2"
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0"
+              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0"
             >
               <span>GitHub Repo</span>
             </a>
@@ -219,8 +278,49 @@ export const CodeDefense: React.FC<CodeDefenseProps> = ({
             </div>
           </form>
 
-          {/* AI Feedback Panel */}
-          {feedback && (
+          {/* Gemini 1.5 Pro Detailed Evaluation */}
+          {llmEvaluation && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-5 rounded-xl bg-gradient-to-br from-[#EFF5FE] to-[#F6FAFF] border border-[#BBD9FF] space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-[#FFC66B]" />
+                  <h4 className="text-xs font-black text-[#1746A2]">
+                    Gemini 1.5 Pro Staff Examiner Evaluation
+                  </h4>
+                </div>
+                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-white text-[#10B981] border border-[#A7F3D0]">
+                  Score: {llmEvaluation.score}/100 ({llmEvaluation.verdict})
+                </span>
+              </div>
+
+              {/* Strengths */}
+              {llmEvaluation.strengths?.length > 0 && (
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-[#065F46] tracking-wider">Strengths:</span>
+                  <ul className="text-xs text-[#334155] space-y-0.5 list-disc list-inside">
+                    {llmEvaluation.strengths.map((s: string, idx: number) => <li key={idx}>{s}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {/* Model staff response */}
+              {llmEvaluation.model_staff_answer && (
+                <div className="pt-2 border-t border-[#DDE7F5] space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-[#1746A2] tracking-wider">Staff Engineer Model Response:</span>
+                  <p className="text-xs text-[#475874] italic leading-relaxed bg-white/70 p-2.5 rounded-lg border border-[#DDE7F5]">
+                    "{llmEvaluation.model_staff_answer}"
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* AI Feedback Panel (Fallback) */}
+          {!llmEvaluation && feedback && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

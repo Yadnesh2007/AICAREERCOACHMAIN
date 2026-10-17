@@ -217,6 +217,92 @@ export async function connectGitHubRepo(repoUrl: string, branch: string = 'main'
     throw new Error(err.detail || 'Failed to connect repository');
   }
   return res.json();
+}export async function selectTargetCompanyApi(companyId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/companies/select-target`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ company_id: companyId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to select target company');
+  }
+  return res.json();
 }
 
+export async function generateCodeRemediationLlm(
+  gapKey: string,
+  gapTitle: string,
+  targetFile: string = 'app/main.py'
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/llm/code-remediation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ gap_key: gapKey, gap_title: gapTitle, target_file: targetFile }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to generate code remediation');
+  }
+  return res.json();
+}
+
+export async function generateInterviewQuestionLlm(
+  skillKey: string,
+  evidenceCode: string = '',
+  company: string = 'Stripe'
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/llm/mock-interview-question`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ skill_key: skillKey, evidence_code: evidenceCode, company }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to generate interview question');
+  }
+  return res.json();
+}
+
+export async function gradeDefenseAnswerLlm(
+  question: string,
+  candidateAnswer: string,
+  expectedConcepts: string[] = []
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/llm/grade-defense-answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      question,
+      candidate_answer: candidateAnswer,
+      expected_concepts: expectedConcepts,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to grade defense answer');
+  }
+  return res.json();
+}
+
+export async function generateStarBulletsLlm(
+  roleTarget: string,
+  skillName: string,
+  githubEvidenceSummary: string = ''
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/llm/generate-star-bullets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      role_target: roleTarget,
+      skill_name: skillName,
+      github_evidence_summary: githubEvidenceSummary,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to generate STAR bullets');
+  }
+  return res.json();
+}
 

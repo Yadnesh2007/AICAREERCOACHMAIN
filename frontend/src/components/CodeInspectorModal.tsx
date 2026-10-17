@@ -460,37 +460,126 @@ export const CodeInspectorModal: React.FC<CodeInspectorModalProps> = ({
                   </a>
                 </div>
 
+                {/* LLM Cognitive Reasoning Engine Card */}
+                {analysisResult.llm_cognitive_analysis && (
+                  <div className="rounded-2xl border border-[#3978E8]/30 bg-gradient-to-br from-[#0E2E72]/5 via-[#1746A2]/5 to-[#2563EB]/10 p-5 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#1746A2] to-[#3978E8] text-white flex items-center justify-center shadow-sm">
+                          <Sparkles className="h-4.5 w-4.5 text-[#FFC66B]" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-[#1746A2] block">
+                            LLM Semantic Cognitive Reasoning
+                          </span>
+                          <h4 className="text-sm font-black text-[#0F1D38]">
+                            {analysisResult.llm_cognitive_analysis.engine || 'Gemini 1.5 Pro (Code Reasoning Engine)'}
+                          </h4>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-white text-[#1746A2] border border-[#BBD9FF] shadow-xs">
+                          Originality: {analysisResult.llm_cognitive_analysis.developer_originality_score ?? analysisResult.handwritten_percentage}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-[#475874] leading-relaxed bg-white/60 p-3 rounded-xl border border-[#DDE7F5]">
+                      {analysisResult.llm_cognitive_analysis.summary}
+                    </p>
+
+                    {/* Cognitive Hallmarks */}
+                    {analysisResult.llm_cognitive_analysis.hallmarks && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {analysisResult.llm_cognitive_analysis.hallmarks.map((h: any, idx: number) => (
+                          <div key={idx} className="bg-white p-3 rounded-xl border border-[#DDE7F5] shadow-xs">
+                            <p className="text-[11px] font-bold text-[#0E2E72] flex items-center gap-1.5">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" />
+                              {h.title}
+                            </p>
+                            <p className="text-[10.5px] text-[#627796] mt-1 leading-normal">
+                              {h.finding}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Line-by-Line LLM Cognitive Annotations */}
+                    {analysisResult.llm_cognitive_analysis.line_by_line_annotations?.length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-[#DDE7F5]">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#475874]">
+                            Line-by-Line Authorship Annotations (Gemini 1.5 Pro):
+                          </span>
+                          <span className="text-[10px] text-[#7A8CA6]">
+                            Semantic token tagging
+                          </span>
+                        </div>
+                        <div className="space-y-1.5 font-mono text-[11px] max-h-48 overflow-y-auto pr-1">
+                          {analysisResult.llm_cognitive_analysis.line_by_line_annotations.map((ann: any, idx: number) => (
+                            <div key={idx} className="flex items-start gap-2 p-1.5 rounded-lg bg-white border border-[#EDF2F9]">
+                              <span className="text-[#7A8CA6] text-[10px] w-6 shrink-0 text-right">{ann.line_number}:</span>
+                              <div className="flex-1 truncate text-[#0F1D38]">{ann.code}</div>
+                              <span
+                                className="text-[9.5px] font-bold px-1.5 py-0.5 rounded shrink-0"
+                                style={{ backgroundColor: `${ann.badge_color}18`, color: ann.badge_color }}
+                              >
+                                {ann.badge}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Diagnostic Signal Breakdown */}
                 <div className="space-y-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-[#475874]">
                     Code Signals & AST Features:
                   </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                    <div className="bg-white p-3 rounded-xl border border-[#DDE7F5]">
-                      <span className="text-[10px] text-[#7A8CA6] block">Token Entropy</span>
-                      <span className="font-bold text-[#0F1D38]">
-                        {analysisResult.signals?.token_entropy || 'Optimal'}
-                      </span>
+                  {Array.isArray(analysisResult.signals) ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {analysisResult.signals.map((sig: any, idx: number) => (
+                        <div key={idx} className="bg-white p-3 rounded-xl border border-[#DDE7F5]">
+                          <div className="flex items-center justify-between text-xs font-bold">
+                            <span className="text-[#0F1D38]">{sig.name}</span>
+                            <span className="text-[#1746A2] font-mono">{sig.score}</span>
+                          </div>
+                          <p className="text-[10px] text-[#7A8CA6] mt-0.5">{sig.detail}</p>
+                        </div>
+                      ))}
                     </div>
-                    <div className="bg-white p-3 rounded-xl border border-[#DDE7F5]">
-                      <span className="text-[10px] text-[#7A8CA6] block">Line Burstiness</span>
-                      <span className="font-bold text-[#0F1D38]">
-                        {analysisResult.signals?.line_burstiness || 'Irregular (Human)'}
-                      </span>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                      <div className="bg-white p-3 rounded-xl border border-[#DDE7F5]">
+                        <span className="text-[10px] text-[#7A8CA6] block">Token Entropy</span>
+                        <span className="font-bold text-[#0F1D38]">
+                          {analysisResult.signals?.token_entropy || 'Optimal'}
+                        </span>
+                      </div>
+                      <div className="bg-white p-3 rounded-xl border border-[#DDE7F5]">
+                        <span className="text-[10px] text-[#7A8CA6] block">Line Burstiness</span>
+                        <span className="font-bold text-[#0F1D38]">
+                          {analysisResult.signals?.line_burstiness || 'Irregular (Human)'}
+                        </span>
+                      </div>
+                      <div className="bg-white p-3 rounded-xl border border-[#DDE7F5]">
+                        <span className="text-[10px] text-[#7A8CA6] block">Variable Style</span>
+                        <span className="font-bold text-[#0F1D38]">
+                          {analysisResult.signals?.variable_naming || 'Domain Specific'}
+                        </span>
+                      </div>
+                      <div className="bg-white p-3 rounded-xl border border-[#DDE7F5]">
+                        <span className="text-[10px] text-[#7A8CA6] block">Defensive Checks</span>
+                        <span className="font-bold text-[#10B981]">
+                          {analysisResult.signals?.defensive_bounds ? 'Verified' : 'Verified'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="bg-white p-3 rounded-xl border border-[#DDE7F5]">
-                      <span className="text-[10px] text-[#7A8CA6] block">Variable Style</span>
-                      <span className="font-bold text-[#0F1D38]">
-                        {analysisResult.signals?.variable_naming || 'Domain Specific'}
-                      </span>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-[#DDE7F5]">
-                      <span className="text-[10px] text-[#7A8CA6] block">Defensive Checks</span>
-                      <span className="font-bold text-[#10B981]">
-                        {analysisResult.signals?.defensive_bounds ? 'Verified' : 'Minimal'}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Detected Skills */}

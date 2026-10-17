@@ -14,18 +14,31 @@ import {
 import { fetchCompanyMatches } from '../lib/api';
 
 interface MultiCompanyAllocationProps {
-  onSelectTargetCompany?: (company: string, role: string, url: string) => void;
+  onSelectTargetCompany?: (company: string, role: string, url: string, companyId?: string) => void;
   activeCompany?: string;
+  selectedCompanyId?: string;
 }
 
 export const MultiCompanyAllocation: React.FC<MultiCompanyAllocationProps> = ({
   onSelectTargetCompany,
   activeCompany = 'Stripe',
+  selectedCompanyId: propSelectedId,
 }) => {
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterTier, setFilterTier] = useState<string>('all');
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('comp_stripe');
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(propSelectedId || 'comp_stripe');
+
+  useEffect(() => {
+    if (propSelectedId) {
+      setSelectedCompanyId(propSelectedId);
+    } else if (activeCompany && companies.length > 0) {
+      const match = companies.find(
+        (c) => c.company.toLowerCase() === activeCompany.toLowerCase()
+      );
+      if (match) setSelectedCompanyId(match.id);
+    }
+  }, [propSelectedId, activeCompany, companies]);
 
   useEffect(() => {
     const loadMatches = async () => {
@@ -53,7 +66,7 @@ export const MultiCompanyAllocation: React.FC<MultiCompanyAllocationProps> = ({
   const handleSelect = (c: any) => {
     setSelectedCompanyId(c.id);
     if (onSelectTargetCompany) {
-      onSelectTargetCompany(c.company, c.role, c.genuine_url || c.job_url || 'https://stripe.com/jobs');
+      onSelectTargetCompany(c.company, c.role, c.genuine_url || c.job_url || 'https://stripe.com/jobs', c.id);
     }
   };
 
@@ -125,9 +138,7 @@ export const MultiCompanyAllocation: React.FC<MultiCompanyAllocationProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {filteredCompanies.map((c) => {
-            const isSelected =
-              activeCompany.toLowerCase().includes(c.company?.toLowerCase() || '') ||
-              selectedCompanyId === c.id;
+            const isSelected = selectedCompanyId === c.id;
             const matchRate = c.match_rate ?? c.match_percentage ?? 75;
             const matchedSkills: string[] = c.matched_skills || c.skills_matched || [];
             const missingSkills: string[] = c.missing_skills || c.skills_missing || [];

@@ -43,7 +43,8 @@ interface DashboardProps {
   onOpenPricing?: () => void;
   onOpenCodeInspector?: () => void;
   onOpenConnectRepo?: () => void;
-  onSelectTargetCompany?: (company: string, role: string, url: string) => void;
+  onSelectTargetCompany?: (company: string, role: string, url: string, companyId?: string) => void;
+  selectedCompanyId?: string;
   connectedRepoUrl?: string;
 }
 
@@ -144,6 +145,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenCodeInspector,
   onOpenConnectRepo,
   onSelectTargetCompany,
+  selectedCompanyId = 'comp_stripe',
   connectedRepoUrl,
 }) => {
   const [expandedVerdict, setExpandedVerdict] = useState<string | null>(null);
@@ -199,17 +201,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 max-w-full lg:max-w-2xl justify-start lg:justify-end shrink-0">
             {/* Attached Reference Image Preview Badge */}
-            <div className="hidden xl:flex items-center gap-2.5 bg-white/10 backdrop-blur-md p-1.5 pr-3 rounded-2xl border border-white/20 shrink-0">
+            <div className="hidden 2xl:flex items-center gap-2 bg-white/10 backdrop-blur-md p-1.5 pr-2.5 rounded-xl border border-white/20 shrink-0">
               <img
                 src="/career-companion.png"
                 alt="SkillAura Companion"
-                className="h-11 w-10 object-cover rounded-xl shadow-md border border-white/25"
+                className="h-9 w-8 object-cover rounded-lg shadow-sm border border-white/25"
               />
               <div className="text-left">
-                <p className="text-[9px] uppercase font-bold text-[#FFC66B]">Career Companion</p>
-                <p className="text-[11px] font-bold text-white">Every Skill Verified</p>
+                <p className="text-[8.5px] uppercase font-bold text-[#FFC66B]">Career Companion</p>
+                <p className="text-[10px] font-bold text-white">Every Skill Verified</p>
               </div>
             </div>
 
@@ -217,11 +219,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {onOpenCodeInspector && (
               <button
                 onClick={onOpenCodeInspector}
-                className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+                className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0"
                 title="Upload .pdf, .py, .sql, etc. to inspect % AI vs. Handwritten code"
               >
-                <Cpu className="h-4 w-4 text-[#FFC66B]" />
-                <span>Upload & Audit Code (% AI)</span>
+                <Cpu className="h-3.5 w-3.5 text-[#FFC66B]" />
+                <span>AI % Audit</span>
               </button>
             )}
 
@@ -229,28 +231,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {onOpenConnectRepo && (
               <button
                 onClick={onOpenConnectRepo}
-                className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+                className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0"
                 title="Connect custom GitHub repo or change repository target"
               >
-                <Github className="h-4 w-4 text-white" />
-                <span>Connect GitHub Repo</span>
+                <Github className="h-3.5 w-3.5 text-white" />
+                <span>Connect Repo</span>
               </button>
             )}
 
             <button
               disabled={isSimulating}
               onClick={() => onSimulatePush('add_sql')}
-              className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-sm shadow-lg shadow-[#FFC66B]/30 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] hover:opacity-95 text-[#0E2E72] font-black text-xs shadow-md shadow-[#FFC66B]/30 flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 shrink-0"
               title="Adds SQL code to repo to trigger automatic skill leveling"
             >
               {isSimulating ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin text-[#0E2E72]" />
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-[#0E2E72]" />
                   <span>Checking Code…</span>
                 </>
               ) : (
                 <>
-                  <Zap className="h-4 w-4 fill-current text-[#0E2E72]" />
+                  <Zap className="h-3.5 w-3.5 fill-current text-[#0E2E72]" />
                   <span>⚡ Try Demo: Add Code</span>
                 </>
               )}
@@ -258,10 +260,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <button
               disabled={isSimulating}
               onClick={() => onSimulatePush('delete_sql')}
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2"
+              className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0"
               title="Simulates removing code to see how skill gaps update honestly"
             >
-              <span>Test Code Removal</span>
+              <span>Test Removal</span>
             </button>
           </div>
         </div>
@@ -672,6 +674,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <MultiCompanyAllocation
           onSelectTargetCompany={onSelectTargetCompany}
           activeCompany={job.employer}
+          selectedCompanyId={selectedCompanyId}
         />
       </div>
 

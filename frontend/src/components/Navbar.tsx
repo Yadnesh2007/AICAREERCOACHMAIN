@@ -104,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {/* Nav Tabs — fits 8 tabs cleanly with flexible layout and no scrollbar */}
-            <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0 flex-1 justify-center px-1 overflow-x-auto no-scrollbar scroll-smooth">
+            <nav className="hidden lg:flex items-center gap-0.5 min-w-0 flex-1 justify-center px-1 overflow-x-auto no-scrollbar scroll-smooth">
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -112,7 +112,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`nav-tab flex items-center gap-1 text-[11px] xl:text-[11.5px] px-1.5 xl:px-2.5 py-1.5 shrink-0 transition-all ${
+                    className={`nav-tab flex items-center gap-1 text-[11px] px-1.5 xl:px-2 py-1.5 shrink-0 transition-all ${
                       isActive ? 'active font-bold text-[#1746A2] bg-[#EEF4FD]' : 'text-[#475874] hover:bg-[#F3F7FC]'
                     } ${
                       item.highlight && !isActive
@@ -133,16 +133,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
 
             {/* Right Controls */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               {/* Connect GitHub Repo */}
               {onOpenConnectRepo && (
                 <button
                   onClick={onOpenConnectRepo}
-                  title="Connect or switch your GitHub repository"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#DDE7F5] bg-[#F8FAFD] hover:bg-[#EEF4FD] text-[#0F1D38] text-xs font-semibold transition-all shrink-0"
+                  title={`Linked: ${connectedRepoName || 'Connect GitHub Repository'}`}
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-[#DDE7F5] bg-[#F8FAFD] hover:bg-[#EEF4FD] text-[#0F1D38] text-[11px] font-semibold transition-all shrink-0"
                 >
                   <Github className="h-3.5 w-3.5 text-[#0F1D38]" />
-                  <span className="hidden xl:inline max-w-[110px] truncate">
+                  <span className="hidden 2xl:inline max-w-[95px] truncate">
                     {connectedRepoName || 'Connect Repo'}
                   </span>
                 </button>
@@ -153,10 +153,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   onClick={onOpenCodeInspector}
                   title="Upload code (.pdf, .py, .sql) to scan % AI vs. Handwritten"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#BBD9FF] bg-[#EFF5FE] hover:bg-[#DCEBFF] text-[#1746A2] text-xs font-bold transition-all shrink-0"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-[#BBD9FF] bg-[#EFF5FE] hover:bg-[#DCEBFF] text-[#1746A2] text-[11px] font-bold transition-all shrink-0"
                 >
                   <Cpu className="h-3.5 w-3.5 text-[#2563EB]" />
-                  <span className="hidden sm:inline">AI % Audit</span>
+                  <span className="hidden xl:inline">AI % Audit</span>
                 </button>
               )}
 
@@ -164,13 +164,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 onClick={onOpenPricing}
                 title="View Subscription Plans & Add-ons (Free, Pro, Ultra)"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#BBD9FF] bg-[#EFF5FE] hover:bg-[#DCEBFF] transition-all shrink-0"
+                className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-[#BBD9FF] bg-[#EFF5FE] hover:bg-[#DCEBFF] transition-all shrink-0"
               >
                 <Crown className={`h-3.5 w-3.5 ${subscriptionPlan === 'ultra' ? 'text-[#7C3AED]' : subscriptionPlan === 'pro' ? 'text-[#D97706]' : 'text-[#3978E8]'}`} />
-                <span className="text-[11px] font-bold text-[#1746A2] hidden sm:inline">
+                <span className="text-[10.5px] font-bold text-[#1746A2] hidden xl:inline">
                   {subscriptionPlan.toUpperCase()}
                 </span>
-                <span className="text-[9.5px] uppercase font-black px-1.5 py-0.2 rounded bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] text-[#0E2E72]">
+                <span className="text-[9px] uppercase font-black px-1.5 py-0.2 rounded bg-gradient-to-r from-[#FFC66B] to-[#F59E0B] text-[#0E2E72]">
                   {subscriptionPlan === 'free' ? 'Upgrade' : 'Active'}
                 </span>
               </button>
@@ -180,10 +180,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   onClick={onResetDemo}
                   title="Reset to v1.0 initial baseline (6 requirements, 3 gaps)"
-                  className="p-1.5 xl:px-2.5 xl:py-1.5 rounded-lg border border-[#DDE7F5] bg-[#F8FAFD] hover:bg-[#E8F2FF] text-[#475874] hover:text-[#1746A2] text-xs font-semibold flex items-center gap-1 transition-all shrink-0"
+                  className="p-1.5 rounded-lg border border-[#DDE7F5] bg-[#F8FAFD] hover:bg-[#E8F2FF] text-[#475874] hover:text-[#1746A2] text-[11px] font-semibold flex items-center gap-1 transition-all shrink-0"
                 >
                   <RotateCcw className="h-3.5 w-3.5 text-[#1746A2]" />
-                  <span className="hidden xl:inline">Reset v1.0</span>
+                  <span className="hidden 2xl:inline">Reset v1.0</span>
                 </button>
               )}
 
@@ -192,7 +192,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 disabled={isSimulating}
                 onClick={() => onSimulatePush('add_sql')}
                 whileTap={{ scale: 0.96 }}
-                className="btn-primary text-xs px-2.5 sm:px-3 py-1.5 shrink-0 shadow-sm"
+                className="btn-primary text-[11px] px-2.5 py-1.5 shrink-0 shadow-sm"
                 title="Pushes SQL queries to repository and triggers live AST reassessment"
               >
                 {isSimulating ? (

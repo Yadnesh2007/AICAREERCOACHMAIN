@@ -20,7 +20,7 @@ import {
   ExternalLink,
   Github,
 } from 'lucide-react';
-import { fetchGapTasks } from '../lib/api';
+import { fetchGapTasks, generateCodeRemediationLlm } from '../lib/api';
 import { GapTask } from '../lib/types';
 
 interface GapLabProps {
@@ -127,6 +127,25 @@ export const GapLab: React.FC<GapLabProps> = ({
   const [expandedCodeTaskId, setExpandedCodeTaskId] = useState<string | null>('gap_sql_01');
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [llmPatches, setLlmPatches] = useState<Record<string, any>>({});
+  const [loadingPatchTaskId, setLoadingPatchTaskId] = useState<string | null>(null);
+
+  const handleGenerateLlmPatch = async (task: GapTask) => {
+    setLoadingPatchTaskId(task.id);
+    try {
+      const res = await generateCodeRemediationLlm(
+        task.id,
+        task.title,
+        task.suggested_files?.[0] || 'app/main.py'
+      );
+      setLlmPatches((prev) => ({ ...prev, [task.id]: res }));
+      setExpandedCodeTaskId(task.id);
+    } catch (err) {
+      console.error('Failed to generate LLM code remediation', err);
+    } finally {
+      setLoadingPatchTaskId(null);
+    }
+  };
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -302,6 +321,26 @@ export const GapLab: React.FC<GapLabProps> = ({
                   <span className="px-2.5 py-1 rounded-full text-xs font-semibold capitalize bg-[#EFF5FE] text-[#1746A2] border border-[#BBD9FF]">
                     {task.status.replace(/_/g, ' ')}
                   </span>
+
+                  <button
+                    disabled={loadingPatchTaskId === task.id}
+                    onClick={() => handleGenerateLlmPatch(task)}
+                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#1746A2] to-[#2563EB] hover:opacity-95 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                    title="Synthesize production code patch using Gemini 1.5 Pro AST code reasoning"
+                  >
+                    {loadingPatchTaskId === task.id ? (
+                      <>
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin text-white" />
+                        <span>Synthesizing…</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3.5 w-3.5 text-[#FFC66B]" />
+                        <span>✨ Gemini Patch</span>
+                      </>
+                    )}
+                  </button>
+
                   {task.id === 'gap_sql_01' && (
                     <button
                       disabled={isSimulating}
@@ -403,6 +442,29 @@ export const GapLab: React.FC<GapLabProps> = ({
                       </motion.div>
                     )}
                   </AnimatePresence>
+                </div>
+              )}
+
+              {/* Gemini 1.5 Pro Synthesized AST Code Patch */}
+              {llmPatches[task.id] && (
+                <div className="rounded-xl border border-[#3978E8]/40 bg-[#07132B] p-4 text-[#DCEBFF] space-y-3 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-md bg-[#1746A2] text-white flex items-center justify-center">
+                        <Sparkles className="h-3.5 w-3.5 text-[#FFC66B]" />
+                      </div>
+                      <span className="text-xs font-bold text-white">Gemini 1.5 Pro AST Code Patch</span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40">
+                      AST Compliant: Ready to Commit
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#94A3B8] leading-relaxed bg-white/5 p-2.5 rounded-lg border border-white/10">
+                    {llmPatches[task.id].architectural_explanation}
+                  </p>
+                  <pre className="p-3.5 rounded-lg bg-[#0A1628] text-xs font-mono text-[#38BDF8] overflow-x-auto border border-[#1E293B] leading-relaxed">
+                    <code>{llmPatches[task.id].remediation_code}</code>
+                  </pre>
                 </div>
               )}
 
