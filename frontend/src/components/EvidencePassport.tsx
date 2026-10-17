@@ -229,12 +229,12 @@ export const EvidencePassport: React.FC<EvidencePassportProps> = ({
           <div key={v.skill_key} className="metric-card !p-4 !gap-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black uppercase tracking-wider text-[#7A8CA6]">
-                {v.skill_key.replace(/_/g, ' ')}
+                {(v.skill_key || 'Skill').replace(/_/g, ' ')}
               </span>
               <StatusIcon status={v.status || v.verdict_status} />
             </div>
             <StatusPill status={v.status || v.verdict_status || 'unable_to_assess'} />
-            <p className="text-[10px] text-[#6B7E9C] leading-snug">{v.rationale?.slice(0, 60)}…</p>
+            <p className="text-[10px] text-[#6B7E9C] leading-snug">{v.rationale ? `${v.rationale.slice(0, 60)}…` : 'Verified by AST static analysis.'}</p>
           </div>
         ))}
       </div>

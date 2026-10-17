@@ -160,10 +160,10 @@ export const MultiCompanyAllocation: React.FC<MultiCompanyAllocationProps> = ({
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
                       <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#1746A2] to-[#3978E8] text-white flex items-center justify-center font-black text-sm shadow-sm shrink-0">
-                        {c.logo_text || c.company.slice(0, 2).toUpperCase()}
+                        {c.logo_text || (c.company || 'CO').slice(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="font-black text-[#0F1D38] text-sm leading-tight">{c.company}</h3>
+                        <h3 className="font-black text-[#0F1D38] text-sm leading-tight">{c.company || 'Company'}</h3>
                         <p className="text-[11px] text-[#7A8CA6] font-medium flex items-center gap-1 mt-0.5">
                           <MapPin className="h-3 w-3" />
                           <span className="truncate max-w-[120px]">{c.location}</span>

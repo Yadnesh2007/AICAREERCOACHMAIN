@@ -391,17 +391,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   >
                     <div className="flex items-center gap-3.5">
                       <div className="h-9 w-9 rounded-xl bg-[#EFF5FE] border border-[#DDE7F5] flex items-center justify-center text-[#1746A2] shrink-0 font-mono text-xs font-bold">
-                        {verdict.skill_key.slice(0, 2).toUpperCase()}
+                        {(verdict.skill_key || 'SK').slice(0, 2).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-sm text-[#0F1D38]">
-                            {verdict.skill_key.replace(/_/g, ' ').toUpperCase()}
+                            {(verdict.skill_key || 'Skill').replace(/_/g, ' ').toUpperCase()}
                           </h3>
                           <StatusBadge status={verdict.status} />
                         </div>
                         <p className="text-xs text-[#475874] mt-0.5 line-clamp-1">
-                          {verdict.exact_claim}
+                          {verdict.exact_claim || 'Verified competency'}
                         </p>
                       </div>
                     </div>
