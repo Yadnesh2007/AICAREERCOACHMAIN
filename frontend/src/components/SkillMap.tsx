@@ -19,7 +19,29 @@ import {
   BookOpen,
   ArrowUpRight,
   Check,
+  BarChart3,
+  PieChart as PieIcon,
+  Compass,
+  Activity,
+  Radio,
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 import { fetchSkillMap } from '../lib/api';
 
 interface SkillMapProps {
@@ -36,11 +58,29 @@ const CATEGORY_META: Record<string, { label: string; icon: any; color: string; b
   ai_rag: { label: 'AI & RAG Intelligence', icon: Sparkles, color: '#D97706', bg: '#FFF9E6' },
 };
 
+// SVG visual graph coordinates for the 12 core skill tree nodes
+const NODE_POSITIONS: Record<string, { x: number; y: number }> = {
+  python_core: { x: 50, y: 110 },
+  typing_pydantic: { x: 50, y: 270 },
+  rest_apis: { x: 260, y: 90 },
+  sql_query_writing: { x: 260, y: 220 },
+  api_security: { x: 260, y: 350 },
+  redis_caching: { x: 470, y: 80 },
+  automated_testing: { x: 470, y: 210 },
+  orm_sqlalchemy: { x: 470, y: 340 },
+  containerization_docker: { x: 680, y: 90 },
+  ci_cd_github_actions: { x: 680, y: 220 },
+  ast_static_analysis: { x: 680, y: 350 },
+  vector_embeddings_rag: { x: 880, y: 220 },
+};
+
 export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [graphView, setGraphView] = useState<'dag' | 'radar' | 'tiers' | 'ratio' | 'all'>('dag');
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadSkillMap = async () => {
@@ -79,11 +119,56 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
   // Calculate demonstrated percentage
   const demonstratedCount = nodes.filter((n: any) => n.status === 'demonstrated').length;
   const partialCount = nodes.filter((n: any) => n.status === 'partially_demonstrated').length;
+  const gapCount = Math.max(0, nodes.length - demonstratedCount - partialCount);
   const masteryPercentage = Math.round(((demonstratedCount + partialCount * 0.5) / (nodes.length || 1)) * 100);
+
+  // 1. Competency Radar Data across the 7 domains
+  const radarData = Object.entries(CATEGORY_META).map(([catKey, meta]) => {
+    const catNodes = nodes.filter((n: any) => n.category === catKey);
+    const total = catNodes.length || 1;
+    const demo = catNodes.filter((n: any) => n.status === 'demonstrated').length;
+    const part = catNodes.filter((n: any) => n.status === 'partially_demonstrated').length;
+    const score = Math.round(((demo + part * 0.5) / total) * 100);
+    const targetBenchmark = catKey === 'foundation' ? 95 : catKey === 'backend' ? 90 : catKey === 'database' ? 85 : 80;
+    return {
+      category: meta.label.split(' ')[0],
+      fullLabel: meta.label,
+      candidateScore: score,
+      targetBenchmark: targetBenchmark,
+      demonstrated: demo,
+      total: catNodes.length,
+    };
+  });
+
+  // 2. Proficiency Tiers (Levels 1 to 5)
+  const levelNames = ['Foundation', 'Core Backend', 'Storage & Cache', 'Reliability & DevOps', 'AI Frontier'];
+  const tierData = [1, 2, 3, 4, 5].map((lvl) => {
+    const lvlNodes = nodes.filter((n: any) => (n.level || 1) === lvl);
+    const demo = lvlNodes.filter((n: any) => n.status === 'demonstrated').length;
+    const part = lvlNodes.filter((n: any) => n.status === 'partially_demonstrated').length;
+    const gaps = lvlNodes.filter((n: any) => n.status !== 'demonstrated' && n.status !== 'partially_demonstrated').length;
+    const total = lvlNodes.length || 1;
+    const mastery = Math.round(((demo + part * 0.5) / total) * 100);
+    return {
+      tier: `L${lvl} ${levelNames[lvl - 1]}`,
+      demonstrated: demo,
+      partial: part,
+      gaps: gaps,
+      mastery: mastery,
+      total: lvlNodes.length,
+    };
+  });
+
+  // 3. Verification Ratio Donut Data
+  const pieData = [
+    { name: 'Demonstrated (Verified AST)', value: demonstratedCount, color: '#10B981' },
+    { name: 'Partially Demonstrated', value: partialCount, color: '#F59E0B' },
+    { name: 'Identified Skill Gaps', value: gapCount, color: '#EF4444' },
+  ].filter((item) => item.value > 0);
 
   return (
     <div className="space-y-8">
-      {/* Header Banner: Deep Cobalt via Sapphire to Blue with Amber accents & Companion Image */}
+      {/* Header Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0E2E72] via-[#1746A2] to-[#2563EB] text-white p-6 sm:p-8 shadow-xl shadow-[#0E2E72]/15 border border-white/10">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-[#FFC66B]/15 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 -mb-20 w-80 h-80 rounded-full bg-[#38BDF8]/15 blur-3xl pointer-events-none" />
@@ -92,15 +177,15 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#FFC66B]">
               <Network className="h-3.5 w-3.5" />
-              <span>SkillAura Skill Graph</span>
+              <span>SkillAura Skill Graph & Analytics</span>
               <span className="text-white/60">·</span>
-              <span className="text-white">Sponsored by Worcflow</span>
+              <span className="text-white">Every Skill Backed by Real GitHub Evidence</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Developer Skill Tree & Learning Paths
+              Developer Skill Tree & Interactive Graphs
             </h1>
             <p className="text-[#DCEBFF] text-sm sm:text-base leading-relaxed">
-              Understand prerequisite skills step-by-step. See which skills build on each other (e.g., Python Basics &rarr; SQL Queries &rarr; Backend APIs &rarr; Production Caching) so you always know what to study next.
+              Explore dynamic topological DAG dependencies, radar competency profiles, tier-level mastery bars, and verification donuts calculated directly from your repository AST citations.
             </p>
 
             {/* Quick Helper Badges */}
@@ -109,7 +194,7 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" /> Status: <strong className="text-white">{masteryPercentage}% Mastery</strong>
               </span>
               <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
-                Target: <strong className="text-white">Stripe SWE Aligned</strong>
+                Target: <strong className="text-white">Senior SWE Alignment</strong>
               </span>
               <span className="px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[#BBD9FF] flex items-center gap-1.5">
                 Total Nodes: <strong className="text-white">{nodes.length} Skills</strong>
@@ -142,7 +227,7 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
               </div>
             </div>
             <a
-              href="https://github.com/Yadnesh2007/AICOACH2"
+              href="https://github.com/Yadnesh2007/SAHAYOG"
               target="_blank"
               rel="noreferrer"
               className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shrink-0"
@@ -154,7 +239,458 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
         </div>
       </div>
 
-      {/* Category Filter Pills */}
+      {/* ── GRAPH SELECTION BAR ── */}
+      <div className="p-4 rounded-2xl bg-white border border-[#DDE7F5] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <span className="p-2 rounded-xl bg-[#EFF5FE] text-[#1746A2]">
+            <Compass className="h-4 w-4" />
+          </span>
+          <div>
+            <h3 className="font-bold text-sm text-[#0F1D38]">Skill Visualization Graphs</h3>
+            <p className="text-xs text-[#7A8CA6]">Select a graph perspective to inspect data patterns</p>
+          </div>
+        </div>
+
+        {/* View Switcher Buttons */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {[
+            { id: 'dag', label: 'Skill DAG Tree', icon: GitBranch },
+            { id: 'radar', label: 'Competency Radar', icon: Radio },
+            { id: 'tiers', label: 'Level Tiers Bar', icon: BarChart3 },
+            { id: 'ratio', label: 'Verification Ratio', icon: PieIcon },
+            { id: 'all', label: 'Executive Grid', icon: Layers },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = graphView === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setGraphView(tab.id as any)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  isActive
+                    ? 'bg-gradient-to-r from-[#0E2E72] to-[#2563EB] text-white shadow-sm'
+                    : 'bg-[#F8FAFD] border border-[#DDE7F5] text-[#475874] hover:bg-[#EEF4FD]'
+                }`}
+              >
+                <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-[#FFC66B]' : 'text-[#7A8CA6]'}`} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── GRAPH DISPLAY CANVASES ── */}
+
+      {/* 1. VISUAL DAG SKILL TREE GRAPH */}
+      {(graphView === 'dag' || graphView === 'all') && (
+        <div className="panel p-6 bg-white border border-[#DDE7F5] shadow-sm space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 className="font-bold text-sm text-[#0F1D38] flex items-center gap-2">
+                <GitBranch className="h-4 w-4 text-[#1746A2]" />
+                <span>Topological Skill Dependency Graph (DAG)</span>
+              </h3>
+              <p className="text-xs text-[#7A8CA6] mt-0.5">
+                Directed graph mapping prerequisite fundamentals into high-throughput production and AI capabilities. Click any node to inspect.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] font-mono">
+              <span className="flex items-center gap-1 text-[#065F46]">
+                <span className="h-2 w-2 rounded-full bg-[#10B981]" /> Demonstrated
+              </span>
+              <span className="flex items-center gap-1 text-[#854D0E]">
+                <span className="h-2 w-2 rounded-full bg-[#F59E0B]" /> Partial
+              </span>
+              <span className="flex items-center gap-1 text-[#991B1B]">
+                <span className="h-2 w-2 rounded-full bg-[#EF4444]" /> Gap
+              </span>
+            </div>
+          </div>
+
+          {/* SVG Canvas Container */}
+          <div className="relative overflow-x-auto rounded-2xl bg-[#07132B] border border-[#1E293B] p-4 shadow-inner">
+            <svg
+              className="w-full min-w-[960px] h-[450px]"
+              viewBox="0 0 1060 450"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <marker
+                  id="dag-arrow"
+                  viewBox="0 0 10 10"
+                  refX="8"
+                  refY="5"
+                  markerWidth="6"
+                  markerHeight="6"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#3B82F6" />
+                </marker>
+                <marker
+                  id="dag-arrow-active"
+                  viewBox="0 0 10 10"
+                  refX="8"
+                  refY="5"
+                  markerWidth="7"
+                  markerHeight="7"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#FFC66B" />
+                </marker>
+                <linearGradient id="edge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#1E3A8A" stopOpacity="0.7" />
+                  <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.9" />
+                </linearGradient>
+              </defs>
+
+              {/* Tier Background Columns */}
+              {[
+                { label: 'LEVEL 1: FOUNDATION', x: 20, width: 190 },
+                { label: 'LEVEL 2: BACKEND & APIS', x: 230, width: 190 },
+                { label: 'LEVEL 3: STORAGE & CACHE', x: 440, width: 190 },
+                { label: 'LEVEL 4: RELIABILITY & DEVOPS', x: 650, width: 190 },
+                { label: 'LEVEL 5: AI & FRONTIER', x: 860, width: 180 },
+              ].map((tier, idx) => (
+                <g key={idx}>
+                  <rect
+                    x={tier.x}
+                    y={15}
+                    width={tier.width}
+                    height={420}
+                    rx={12}
+                    fill="#0B1B3D"
+                    fillOpacity={0.4}
+                    stroke="#1E293B"
+                    strokeWidth={1}
+                  />
+                  <text
+                    x={tier.x + tier.width / 2}
+                    y={38}
+                    textAnchor="middle"
+                    fill="#64748B"
+                    fontSize="9.5"
+                    fontFamily="monospace"
+                    fontWeight="700"
+                    letterSpacing="0.08em"
+                  >
+                    {tier.label}
+                  </text>
+                </g>
+              ))}
+
+              {/* Connecting Directed Edges */}
+              {edges.map((edge: any, idx: number) => {
+                const sPos = NODE_POSITIONS[edge.source];
+                const tPos = NODE_POSITIONS[edge.target];
+                if (!sPos || !tPos) return null;
+
+                const isConnected =
+                  selectedNode?.id === edge.source ||
+                  selectedNode?.id === edge.target ||
+                  hoveredNodeId === edge.source ||
+                  hoveredNodeId === edge.target;
+
+                const startX = sPos.x + 155;
+                const startY = sPos.y + 26;
+                const endX = tPos.x;
+                const endY = tPos.y + 26;
+                const dx = endX - startX;
+                const c1X = startX + dx * 0.45;
+                const c2X = startX + dx * 0.55;
+
+                return (
+                  <path
+                    key={idx}
+                    d={`M ${startX} ${startY} C ${c1X} ${startY}, ${c2X} ${endY}, ${endX} ${endY}`}
+                    stroke={isConnected ? '#FFC66B' : '#2563EB'}
+                    strokeWidth={isConnected ? 2.5 : 1.3}
+                    strokeOpacity={isConnected ? 1 : 0.45}
+                    strokeDasharray={isConnected ? '4 2' : 'none'}
+                    markerEnd={isConnected ? 'url(#dag-arrow-active)' : 'url(#dag-arrow)'}
+                    className="transition-all duration-300"
+                  />
+                );
+              })}
+
+              {/* Graph Nodes */}
+              {nodes.map((node: any) => {
+                const pos = NODE_POSITIONS[node.id];
+                if (!pos) return null;
+
+                const isSelected = selectedNode?.id === node.id;
+                const isHovered = hoveredNodeId === node.id;
+                const isDemonstrated = node.status === 'demonstrated';
+                const isPartial = node.status === 'partially_demonstrated';
+                const statusColor = isDemonstrated ? '#10B981' : isPartial ? '#F59E0B' : '#EF4444';
+                const statusText = isDemonstrated ? 'Demonstrated' : isPartial ? 'Partial' : 'Skill Gap';
+
+                return (
+                  <g
+                    key={node.id}
+                    transform={`translate(${pos.x}, ${pos.y})`}
+                    onClick={() => setSelectedNode(node)}
+                    onMouseEnter={() => setHoveredNodeId(node.id)}
+                    onMouseLeave={() => setHoveredNodeId(null)}
+                    className="cursor-pointer transition-transform duration-200"
+                  >
+                    {/* Glowing highlight ring if selected */}
+                    {isSelected && (
+                      <rect
+                        x={-3}
+                        y={-3}
+                        width={161}
+                        height={58}
+                        rx={12}
+                        fill="none"
+                        stroke="#FFC66B"
+                        strokeWidth={2.5}
+                        className="animate-pulse"
+                      />
+                    )}
+
+                    {/* Node Card Body */}
+                    <rect
+                      x={0}
+                      y={0}
+                      width={155}
+                      height={52}
+                      rx={10}
+                      fill={isSelected ? '#132854' : '#0E2042'}
+                      stroke={isSelected ? '#3B82F6' : '#1E3A8A'}
+                      strokeWidth={1.5}
+                      className="hover:stroke-[#60A5FA] transition-colors"
+                    />
+
+                    {/* Status accent strip */}
+                    <rect
+                      x={0}
+                      y={0}
+                      width={4}
+                      height={52}
+                      rx={2}
+                      fill={statusColor}
+                    />
+
+                    {/* Status Pill Badge */}
+                    <rect
+                      x={10}
+                      y={8}
+                      width={70}
+                      height={13}
+                      rx={4}
+                      fill={statusColor}
+                      fillOpacity={0.2}
+                    />
+                    <circle cx={16} cy={14.5} r={2.5} fill={statusColor} />
+                    <text
+                      x={23}
+                      y={18}
+                      fill={statusColor}
+                      fontSize="8"
+                      fontWeight="700"
+                      fontFamily="monospace"
+                    >
+                      {statusText}
+                    </text>
+
+                    {/* Level Badge */}
+                    <text
+                      x={142}
+                      y={18}
+                      textAnchor="end"
+                      fill="#94A3B8"
+                      fontSize="8"
+                      fontFamily="monospace"
+                      fontWeight="600"
+                    >
+                      L{node.level || 1}
+                    </text>
+
+                    {/* Node Title */}
+                    <text
+                      x={10}
+                      y={34}
+                      fill="#F8FAFC"
+                      fontSize="10"
+                      fontWeight="700"
+                      className="select-none"
+                    >
+                      {node.label.length > 20 ? node.label.slice(0, 19) + '…' : node.label}
+                    </text>
+
+                    {/* Subtitle / Category */}
+                    <text
+                      x={10}
+                      y={45}
+                      fill="#64748B"
+                      fontSize="8"
+                      fontFamily="monospace"
+                    >
+                      {node.category}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+        </div>
+      )}
+
+      {/* 2. RECHARTS RADAR, BARS, AND DONUT EXECUTIVE GRID */}
+      {(graphView !== 'dag') && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Radar Chart: Domain Competency vs Industry Benchmark */}
+          {(graphView === 'radar' || graphView === 'all') && (
+            <div className={`panel p-6 bg-white border border-[#DDE7F5] shadow-sm space-y-4 ${graphView === 'radar' ? 'md:col-span-2 lg:col-span-3' : ''}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-[#0F1D38] flex items-center gap-2">
+                    <Radio className="h-4 w-4 text-[#1746A2]" />
+                    <span>Domain Competency Spider Chart</span>
+                  </h3>
+                  <p className="text-xs text-[#7A8CA6] mt-0.5">
+                    Candidate AST proof vs Employer Benchmark across 7 categories
+                  </p>
+                </div>
+              </div>
+
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                    <PolarGrid stroke="#E2E8F0" />
+                    <PolarAngleAxis dataKey="category" tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#94A3B8', fontSize: 9 }} />
+                    <Radar
+                      name="Candidate Verified Mastery"
+                      dataKey="candidateScore"
+                      stroke="#2563EB"
+                      fill="#3B82F6"
+                      fillOpacity={0.45}
+                    />
+                    <Radar
+                      name="Target SWE Benchmark"
+                      dataKey="targetBenchmark"
+                      stroke="#F59E0B"
+                      fill="#F59E0B"
+                      fillOpacity={0.15}
+                      strokeDasharray="3 3"
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0F172A',
+                        borderColor: '#334155',
+                        borderRadius: '10px',
+                        color: '#F8FAFC',
+                        fontSize: '11px',
+                      }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Bar Chart: Level Tier Mastery */}
+          {(graphView === 'tiers' || graphView === 'all') && (
+            <div className={`panel p-6 bg-white border border-[#DDE7F5] shadow-sm space-y-4 ${graphView === 'tiers' ? 'md:col-span-2 lg:col-span-3' : ''}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-[#0F1D38] flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-[#1746A2]" />
+                    <span>Proficiency Tier Mastery (Levels 1–5)</span>
+                  </h3>
+                  <p className="text-xs text-[#7A8CA6] mt-0.5">
+                    Demonstrated skills vs pending gaps by engineering seniority level
+                  </p>
+                </div>
+              </div>
+
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={tierData} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
+                    <XAxis
+                      dataKey="tier"
+                      tick={{ fill: '#64748B', fontSize: 9.5, fontWeight: 600 }}
+                      interval={0}
+                      angle={-15}
+                      textAnchor="end"
+                    />
+                    <YAxis tick={{ fill: '#64748B', fontSize: 10 }} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0F172A',
+                        borderColor: '#334155',
+                        borderRadius: '10px',
+                        color: '#F8FAFC',
+                        fontSize: '11px',
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '6px' }} />
+                    <Bar dataKey="demonstrated" name="Demonstrated" fill="#10B981" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="partial" name="Partial" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="gaps" name="Skill Gaps" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Donut Chart: Skill Verification Ratio */}
+          {(graphView === 'ratio' || graphView === 'all') && (
+            <div className={`panel p-6 bg-white border border-[#DDE7F5] shadow-sm space-y-4 ${graphView === 'ratio' ? 'md:col-span-2 lg:col-span-3' : ''}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-[#0F1D38] flex items-center gap-2">
+                    <PieIcon className="h-4 w-4 text-[#1746A2]" />
+                    <span>Verification Ratio Donut</span>
+                  </h3>
+                  <p className="text-xs text-[#7A8CA6] mt-0.5">
+                    Overall proof coverage distribution
+                  </p>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EFF5FE] text-[#1746A2]">
+                  {masteryPercentage}% Ready
+                </span>
+              </div>
+
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="45%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={4}
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0F172A',
+                        borderColor: '#334155',
+                        borderRadius: '10px',
+                        color: '#F8FAFC',
+                        fontSize: '11px',
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '6px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── CATEGORY FILTER PILLS ── */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
         {[
           { id: 'all', label: `All Skills (${nodes.length})` },
@@ -180,7 +716,7 @@ export const SkillMap: React.FC<SkillMapProps> = ({ assessmentId }) => {
         ))}
       </div>
 
-      {/* Main Graph Grid */}
+      {/* ── SKILL NODES & DEEP DIVE INSPECTOR GRID ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Interactive Graph Nodes List */}
         <div className="lg:col-span-2 panel p-6 bg-white border border-[#DDE7F5] shadow-sm space-y-6">
